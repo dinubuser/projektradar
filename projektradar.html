@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mein Projektradar</title>
+<!-- Projektradar: https://github.com/dinubuser/projektradar
+     Die Projekte stehen im JSON-Block #radar weiter unten. Gefüllt vom Claude-Code-Skill projekte-sammeln. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: Kopf mit Gesamtbild und Verteilungsbalken, dann Filterleiste, dann Projekte gruppiert nach Fortschritts-Stufe als Kartenraster. Bewusst nur dunkel. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0d14;
+  --bg-glow: #141a2e;
+  --panel: #12151f;
+  --panel-2: #181c29;
+  --line: #252a3b;
+  --fg: #e7e9f2;
+  --muted: #8c92a8;
+  --faint: #5b6178;
+  --accent: #9aa8ff;
+  --accent-2: #c7b2ff;
+  --ok: #5fd4a0;
+  --build: #6cb4ff;
+  --pause: #f0b45a;
+  --idea: #a99bd6;
+  --stop: #e57373;
+  --font-display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Instrument Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  background: radial-gradient(1200px 600px at 80% -10%, var(--bg-glow), transparent 60%), var(--bg);
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 40px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+/* Kopf */
+header { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 32px; align-items: end; }
+header h1 { font-size: clamp(40px, 6vw, 72px); font-weight: 800; line-height: .95; letter-spacing: -.02em; }
+header h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lead { color: var(--muted); max-width: 56ch; margin: 14px 0 0; }
+.stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.stat { background: var(--panel); padding: 16px 14px; display: flex; flex-direction: column; gap: 2px; }
+.stat b { font-family: var(--font-display); font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat small { color: var(--muted); font-size: 12px; }
+.stat.ok b { color: var(--ok); } .stat.build b { color: var(--build); } .stat.pause b { color: var(--pause); } .stat.idea b { color: var(--idea); }
+
+/* Verteilung */
+.dist { display: flex; flex-direction: column; gap: 10px; }
+.dist-bar { display: flex; height: 14px; border-radius: 99px; overflow: hidden; background: var(--panel); border: 1px solid var(--line); }
+.dist-bar i { display: block; height: 100%; }
+.dist-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+.dist-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.dist-legend em { width: 10px; height: 10px; border-radius: 3px; display: inline-block; font-style: normal; }
+
+/* Aufmerksamkeit */
+.alert { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.alert h2 { font-size: 22px; font-weight: 700; }
+.alert ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px 24px; }
+.alert li { display: flex; gap: 10px; font-size: 14px; color: var(--fg); min-width: 0; }
+.alert li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--pause); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pause) 18%, transparent); }
+.alert li.crit::before { background: var(--stop); box-shadow: 0 0 0 4px color-mix(in srgb, var(--stop) 18%, transparent); }
+.alert li b { font-weight: 600; }
+
+/* Filter */
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; padding-block: 12px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(10px); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--font-body); color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 99px; padding: 6px 12px; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
+.chip:hover { color: var(--fg); border-color: var(--faint); }
+.chip[aria-pressed="true"] { color: var(--bg); background: var(--accent); border-color: var(--accent); }
+.chip:focus-visible, select:focus-visible, input:focus-visible, .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ctl-right { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+select, input[type="search"] { font: 14px var(--font-body); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; }
+input[type="search"] { width: 200px; max-width: 100%; }
+
+/* Gruppen */
+.group { display: flex; flex-direction: column; gap: 16px; }
+.group-head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.group-head h2 { font-size: 26px; font-weight: 700; }
+.group-head .range { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.group-head .count { margin-left: auto; font-family: var(--font-mono); font-size: 13px; color: var(--faint); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+
+/* Karte */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; cursor: pointer; min-width: 0; transition: border-color .15s, transform .15s; }
+.card:hover { border-color: var(--faint); transform: translateY(-1px); }
+.card-top { display: flex; gap: 14px; align-items: flex-start; }
+.ring { flex: none; width: 58px; height: 58px; position: relative; }
+.ring svg { width: 58px; height: 58px; transform: rotate(-90deg); }
+.ring span { position: absolute; inset: 0; display: grid; place-items: center; font: 600 14px var(--font-mono); font-variant-numeric: tabular-nums; }
+.card h3 { font-size: 18px; font-weight: 700; line-height: 1.2; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.pill { font: 600 11px var(--font-mono); letter-spacing: .04em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; border: 1px solid currentColor; }
+.pill.cat { color: var(--muted); border-color: var(--line); }
+.s-lauft { color: var(--ok); } .s-bau { color: var(--build); } .s-pause { color: var(--pause); } .s-idee { color: var(--idea); } .s-fertig { color: var(--ok); } .s-stop { color: var(--stop); }
+.desc { color: var(--fg); margin: 0; font-size: 14px; }
+.next { font-size: 13.5px; color: var(--muted); margin: 0; display: flex; gap: 8px; }
+.next b { color: var(--accent); font-weight: 600; flex: none; }
+button.next { font: inherit; font-size: 13.5px; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; cursor: pointer; transition: border-color .15s, color .15s; }
+button.next:hover { border-color: var(--accent); color: var(--fg); }
+button.next:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.next i { margin-left: auto; flex: none; font: 600 11px var(--font-mono); font-style: normal; color: var(--accent); white-space: nowrap; align-self: center; }
+.more { display: none; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 10px; margin: 0; }
+.card[aria-expanded="true"] .more { display: flex; }
+.more dt { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.more dd { margin: 0 0 4px; overflow-wrap: anywhere; }
+.more code { font-family: var(--font-mono); font-size: 12px; color: var(--fg); }
+.foot { display: flex; justify-content: space-between; font: 12px var(--font-mono); color: var(--faint); }
+.empty { color: var(--muted); padding: 30px 0; text-align: center; }
+footer { color: var(--faint); font-size: 13px; border-top: 1px solid var(--line); padding-top: 20px; }
+
+@media (max-width: 860px) {
+  header { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ctl-right { margin-left: 0; width: 100%; }
+  input[type="search"] { flex: 1; }
+  .grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<style>
+body { margin: 0; }
+#groups { display: flex; flex-direction: column; gap: 40px; }
+.head-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 18px; }
+.btn { font: 600 13px var(--font-body); color: var(--bg); background: var(--accent); border: 1px solid var(--accent); border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+.btn:hover { filter: brightness(1.08); }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.alert[hidden], .dist[hidden], .controls[hidden], .demo-note[hidden] { display: none; }
+.empty-box { background: var(--panel); border: 1px dashed var(--line); border-radius: 16px; padding: 32px 24px; color: var(--muted); display: flex; flex-direction: column; gap: 10px; max-width: 70ch; }
+.empty-box h2 { color: var(--fg); font-size: 22px; }
+.empty-box p { margin: 0; }
+.empty-box ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.empty-box a { color: var(--accent); }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--panel-2); color: var(--fg); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 16px; font-size: 14px; max-width: calc(100vw - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: opacity .2s, transform .2s; z-index: 20; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.demo-note { font: 600 12px var(--font-mono); color: var(--pause); }
+.demo-note a { color: inherit; }
+footer a { color: inherit; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow" id="stand">Noch kein Stand</div>
+      <h1>Mein <span>Projekt&shy;radar</span></h1>
+      <p class="lead">Alle angefangenen Projekte an einem Ort, sortiert nach Fortschritt. 0&nbsp;% heisst nur Idee, 100&nbsp;% heisst läuft im Alltag. Tippe auf eine Karte für Fundort und Beleg. Ein Klick auf den nächsten Schritt kopiert einen fertigen Auftrag für Claude Code.</p>
+      <div class="head-actions">
+        <button class="btn" type="button" id="sammeln">↻ Projekte suchen</button>
+        <span class="demo-note" id="demoNote" hidden>Beispieldaten · <a href="#" id="demoAus">ausblenden</a></span>
+      </div>
+    </div>
+    <div class="stats" id="stats"></div>
+  </header>
+
+  <section class="dist" id="dist" aria-label="Verteilung nach Fortschritt">
+    <div class="eyebrow">Verteilung nach Stufe</div>
+    <div class="dist-bar" id="distBar"></div>
+    <div class="dist-legend" id="distLegend"></div>
+  </section>
+
+  <section class="alert" id="alert" aria-labelledby="alertH">
+    <h2 id="alertH">Braucht jetzt Aufmerksamkeit</h2>
+    <ul id="alertList"></ul>
+  </section>
+
+  <div class="controls" id="controls" role="toolbar" aria-label="Filter">
+    <div class="chips" id="statusChips"></div>
+    <div class="ctl-right">
+      <select id="catSel" aria-label="Kategorie"></select>
+      <input id="q" type="search" placeholder="Projekt suchen" aria-label="Projekt suchen">
+    </div>
+  </div>
+
+  <main id="groups"></main>
+
+  <footer>Die Prozentzahlen sind Einschätzungen von Claude anhand der Belege auf jeder Karte. Die Datei liegt nur auf deinem Rechner. Sie enthält Ordnerpfade, also nicht öffentlich teilen. Vorlage: <a href="https://github.com/dinubuser/projektradar">github.com/dinubuser/projektradar</a></footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<!-- Daten. Schema in skills/projekte-sammeln/SKILL.md. Muss gültiges JSON bleiben. -->
+<script type="application/json" id="radar">{"stand": "", "aufmerksamkeit": [], "projekte": []}</script>
+
+<script>
+const STATUS = {
+  lauft: { label: "Läuft", cls: "s-lauft" },
+  bau:   { label: "Im Bau", cls: "s-bau" },
+  pause: { label: "Pausiert", cls: "s-pause" },
+  idee:  { label: "Idee", cls: "s-idee" },
+  fertig: { label: "Abgeschlossen", cls: "s-fertig" },
+  stop:  { label: "Abgebrochen", cls: "s-stop" }
+};
+
+// Erfundene Beispieldaten, nur bei leerem Radar und Adresse mit #beispiel.
+const BEISPIEL = {
+  stand: "2026-10-22",
+  aufmerksamkeit: [
+    { t: "Newsletter-Automation", text: "Der wöchentliche Versand ist seit zwei Wochen nicht mehr gelaufen.", crit: true },
+    { t: "Haushaltsbuch", text: "Der Code liegt ohne git im Downloads-Ordner." }
+  ],
+  projekte: [
+    { n: "Morgen-Zusammenfassung", c: "Automation", s: "lauft", p: 100, d: "Jeden Morgen eine kurze Zusammenfassung der Mails und Termine.", w: "~/Projekte/morgen-mail", l: "2026-10-21", x: "–", b: "Läuft seit drei Wochen täglich, Log ohne Fehler." },
+    { n: "Newsletter-Automation", c: "Business", s: "bau", p: 70, d: "Blogartikel werden automatisch zu einem wöchentlichen Newsletter.", w: "~/Projekte/newsletter", l: "2026-10-08", x: "Herausfinden, warum der Versand seit dem 8.10. ausfällt.", b: "Drei Ausgaben verschickt, danach keine mehr." },
+    { n: "Haushaltsbuch-App", c: "Persönlich", s: "bau", p: 45, d: "Ausgaben per Foto erfassen und monatlich auswerten.", w: "~/Downloads/haushaltsbuch", l: "2026-09-30", x: "Unter git stellen und den Foto-Import fertig bauen.", b: "Eingabe und Auswertung funktionieren, der Foto-Import fehlt." },
+    { n: "Rezept-Sammlung", c: "Persönlich", s: "pause", p: 30, d: "Familienrezepte als durchsuchbare Notizen.", w: "~/Notizen/Rezepte", l: "2026-07-12", x: "Entscheiden, ob es weitergeht.", b: "40 Rezepte erfasst, seit Juli still." },
+    { n: "Online-Kurs Fotografie", c: "Business", s: "idee", p: 10, d: "Ein kleiner Kurs für Einsteiger.", w: "~/Notizen/Ideen/fotokurs.md", l: "2026-08-02", x: "Fünf Lektionen skizzieren.", b: "Nur eine Ideennotiz mit Gliederung." },
+    { n: "Alte Webseite", c: "Business", s: "stop", p: 0, d: "Die frühere WordPress-Seite.", w: "~/Archiv/webseite-alt", l: "2025-12-01", x: "–", b: "Durch die neue Seite ersetzt." }
+  ]
+};
+
+function ladeDaten() {
+  try { return JSON.parse(document.getElementById("radar").textContent); }
+  catch (e) { console.error("Projektradar: JSON-Block #radar ist kaputt", e); return { stand: "", aufmerksamkeit: [], projekte: [], kaputt: true }; }
+}
+const ECHT = ladeDaten();
+const DEMO = !ECHT.projekte.length && location.hash === "#beispiel";
+const D = DEMO ? BEISPIEL : ECHT;
+const P = D.projekte;
+
+const BANDS = [
+  { id: "b100", t: "Läuft im Alltag", r: "100 %", min: 100, max: 100, color: "var(--ok)" },
+  { id: "b80", t: "Fast fertig", r: "80–99 %", min: 80, max: 99, color: "#7ad0c4" },
+  { id: "b60", t: "Kern funktioniert", r: "60–79 %", min: 60, max: 79, color: "var(--build)" },
+  { id: "b30", t: "Im Aufbau", r: "30–59 %", min: 30, max: 59, color: "#8b95ff" },
+  { id: "b10", t: "Konzept", r: "10–29 %", min: 10, max: 29, color: "var(--idea)" },
+  { id: "b0", t: "Nur Idee", r: "0–9 %", min: 0, max: 9, color: "#8a84a8" }
+];
+const DONE_BAND = { id: "bdone", t: "Abgeschlossen", r: "erledigt", color: "#9aa5b1" };
+const STOP_BAND = { id: "bstop", t: "Abgebrochen", r: "stillgelegt", color: "var(--stop)" };
+const END_BANDS = [DONE_BAND, STOP_BAND];
+
+function bandOf(p) {
+  if (p.s === "fertig") return DONE_BAND;
+  if (p.s === "stop") return STOP_BAND;
+  return BANDS.find(b => p.p >= b.min && p.p <= b.max) || BANDS[BANDS.length - 1];
+}
+
+const state = { status: "alle", cat: "alle", q: "" };
+const DATEI = decodeURIComponent(location.pathname);
+
+function datum(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : (s || "–");
+}
+
+let toastTimer;
+function toast(text) {
+  const t = document.getElementById("toast");
+  t.textContent = text;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 4000);
+}
+// file://-Seiten haben nicht in jedem Browser navigator.clipboard, darum der Rückfall auf execCommand.
+function kopiere(text, meldung) {
+  const fallback = () => {
+    const ta = el("textarea"); ta.value = text; document.body.append(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+    toast(ok ? meldung : "Kopieren ging nicht. Auftrag: " + text);
+  };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast(meldung), fallback);
+  else fallback();
+}
+
+// Projektordner: Feld cwd, sonst der erste Pfad mit ~/ oder / aus dem Fundort.
+function ordnerOf(p) {
+  if (p.cwd) return p.cwd;
+  for (const part of (p.w || "").split("·").map(s => s.trim())) {
+    if (part.startsWith("~/") || part.startsWith("/")) return part;
+  }
+  return "";
+}
+function auftrag(p) {
+  const ordner = ordnerOf(p);
+  return `Projekt «${p.n}» · Nächster Schritt: ${p.x}` +
+    (ordner ? ` · Ordner: ${ordner}` : "") +
+    ` · Fundort: ${p.w} · Lies zuerst den aktuellen Stand, dann legen wir mit diesem Schritt los.` +
+    ` Wenn der Schritt erledigt ist, führe mit /projekte-sammeln den Eintrag «${p.n}» in ${DATEI} nach (Prozent, nächster Schritt, Beleg, Zuletzt).`;
+}
+
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") e.className = v; else if (k === "text") e.textContent = v; else e.setAttribute(k, v);
+  }
+  kids.forEach(k => k && e.append(k));
+  return e;
+}
+
+function ring(p, color) {
+  const r = 24, c = 2 * Math.PI * r;
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 58 58");
+  const bg = document.createElementNS(ns, "circle");
+  Object.entries({ cx: 29, cy: 29, r, fill: "none", stroke: "var(--line)", "stroke-width": 5 }).forEach(([k, v]) => bg.setAttribute(k, v));
+  svg.append(bg);
+  if (p > 0) {
+    const fg = document.createElementNS(ns, "circle");
+    Object.entries({ cx: 29, cy: 29, r, fill: "none", stroke: color, "stroke-width": 5, "stroke-linecap": "round", "stroke-dasharray": `${c * p / 100} ${c}` }).forEach(([k, v]) => fg.setAttribute(k, v));
+    svg.append(fg);
+  }
+  return el("div", { class: "ring" }, svg, el("span", { text: p + "%" }));
+}
+
+function card(p) {
+  const st = STATUS[p.s] || STATUS.idee;
+  const band = bandOf(p);
+  const c = el("article", { class: "card", tabindex: "0", "aria-expanded": "false" });
+  const head = el("div", {},
+    el("h3", { text: p.n }),
+    el("div", { class: "meta" },
+      el("span", { class: "pill " + st.cls, text: st.label }),
+      p.c ? el("span", { class: "pill cat", text: p.c }) : null
+    )
+  );
+  c.append(el("div", { class: "card-top" }, ring(p.p, band.color), head));
+  if (p.d) c.append(el("p", { class: "desc", text: p.d }));
+  if (p.x && p.x !== "–") {
+    const go = el("button", { class: "next", type: "button", title: "Auftrag für Claude Code kopieren" }, el("b", { text: "Nächster Schritt" }), el("span", { text: p.x }), el("i", { text: "⧉ Claude" }));
+    go.addEventListener("click", e => { e.stopPropagation(); kopiere(auftrag(p), "Auftrag kopiert. In Claude Code einfügen (Cmd+V)."); });
+    go.addEventListener("keydown", e => e.stopPropagation());
+    c.append(go);
+  }
+  c.append(el("dl", { class: "more" },
+    el("dt", { text: "Beleg" }), el("dd", { text: p.b || "–" }),
+    el("dt", { text: "Fundort" }), el("dd", {}, el("code", { text: p.w || "–" }))
+  ));
+  const hint = el("span", { text: "Details ▾" });
+  c.append(el("div", { class: "foot" }, el("span", { text: "Zuletzt: " + datum(p.l) }), hint));
+  const toggle = () => {
+    const open = c.getAttribute("aria-expanded") === "true";
+    c.setAttribute("aria-expanded", String(!open));
+    hint.textContent = open ? "Details ▾" : "Weniger ▴";
+  };
+  c.addEventListener("click", toggle);
+  c.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+  return c;
+}
+
+function renderStats() {
+  const active = P.filter(p => p.s !== "stop");
+  const count = s => P.filter(p => p.s === s).length;
+  const avg = active.length ? Math.round(active.reduce((a, p) => a + p.p, 0) / active.length) : 0;
+  const box = document.getElementById("stats");
+  [
+    { v: P.length, l: "Projekte & Ideen", k: "" },
+    { v: count("lauft"), l: "laufen im Alltag", k: "ok" },
+    { v: count("bau"), l: "im Bau", k: "build" },
+    { v: avg + "%", l: "Ø Fortschritt ohne Abgebrochene", k: "idea" }
+  ].forEach(s => box.append(el("div", { class: "stat " + s.k }, el("b", { text: String(s.v) }), el("small", { text: s.l }))));
+
+  const bar = document.getElementById("distBar");
+  const leg = document.getElementById("distLegend");
+  [...BANDS, ...END_BANDS].forEach(b => {
+    const n = P.filter(p => bandOf(p) === b).length;
+    if (!n) return;
+    const i = el("i", { title: `${b.t}: ${n}` });
+    i.style.width = (n / P.length * 100) + "%";
+    i.style.background = b.color;
+    bar.append(i);
+    const sw = el("em"); sw.style.background = b.color;
+    leg.append(el("span", {}, sw, document.createTextNode(`${b.t} · ${n}`)));
+  });
+}
+
+function renderAlert() {
+  const list = D.aufmerksamkeit || [];
+  if (!list.length) { document.getElementById("alert").hidden = true; return; }
+  const ul = document.getElementById("alertList");
+  list.forEach(a => ul.append(el("li", { class: a.crit ? "crit" : "" }, el("span", {}, el("b", { text: a.t + ": " }), document.createTextNode(a.text || "")))));
+}
+
+function renderControls() {
+  const chips = document.getElementById("statusChips");
+  [["alle", "Alle"], ...Object.entries(STATUS).map(([k, v]) => [k, v.label])].forEach(([k, label]) => {
+    const n = k === "alle" ? P.length : P.filter(p => p.s === k).length;
+    if (k !== "alle" && !n) return;
+    const b = el("button", { class: "chip", type: "button", id: "chip-" + k, "aria-pressed": String(state.status === k), text: `${label} ${n}` });
+    b.addEventListener("click", () => { state.status = k; chips.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", String(c === b))); renderGroups(); });
+    chips.append(b);
+  });
+  const sel = document.getElementById("catSel");
+  sel.append(el("option", { value: "alle", text: "Alle Kategorien" }));
+  [...new Set(P.map(p => p.c).filter(Boolean))].sort().forEach(c => sel.append(el("option", { value: c, text: c })));
+  sel.addEventListener("change", () => { state.cat = sel.value; renderGroups(); });
+  const q = document.getElementById("q");
+  q.addEventListener("input", () => { state.q = q.value.trim().toLowerCase(); renderGroups(); });
+}
+
+function renderGroups() {
+  const root = document.getElementById("groups");
+  root.replaceChildren();
+  const list = P.filter(p =>
+    (state.status === "alle" || p.s === state.status) &&
+    (state.cat === "alle" || p.c === state.cat) &&
+    (!state.q || (p.n + " " + (p.d || "") + " " + (p.w || "")).toLowerCase().includes(state.q))
+  );
+  if (!list.length) { root.append(el("p", { class: "empty", text: "Kein Projekt passt zu diesem Filter." })); return; }
+  [...BANDS, ...END_BANDS].forEach(b => {
+    const items = list.filter(p => bandOf(p) === b).sort((a, z) => z.p - a.p || a.n.localeCompare(z.n));
+    if (!items.length) return;
+    const sec = el("section", { class: "group", id: b.id });
+    const h2 = el("h2", { text: b.t });
+    h2.style.color = b.color;
+    sec.append(el("div", { class: "group-head" }, h2, el("span", { class: "range", text: b.r }), el("span", { class: "count", text: items.length + (items.length === 1 ? " Projekt" : " Projekte") })));
+    const grid = el("div", { class: "grid" });
+    items.forEach(p => grid.append(card(p)));
+    sec.append(grid);
+    root.append(sec);
+  });
+}
+
+function renderLeer() {
+  ["dist", "alert", "controls"].forEach(id => document.getElementById(id).hidden = true);
+  const box = el("section", { class: "empty-box" });
+  if (ECHT.kaputt) {
+    box.append(el("h2", { text: "Die Projektdaten sind beschädigt." }),
+      el("p", { text: "Der JSON-Block #radar in dieser Datei ist kein gültiges JSON mehr. Sag Claude Code: «/projekte-sammeln repariere " + DATEI + "». Der Skill legt vor jeder Änderung ein Backup an." }));
+  } else {
+    const ol = el("ol");
+    ["Oben auf «↻ Projekte suchen» klicken. Der Auftrag liegt dann in der Zwischenablage.",
+     "Claude Code starten (claude im Terminal) und den Auftrag einfügen.",
+     "Claude durchsucht deinen Rechner nach Projekten, schätzt den Stand und trägt alles hier ein. Das dauert etwa 10 bis 20 Minuten.",
+     "Seite neu laden (Cmd+R)."].forEach(t => ol.append(el("li", { text: t })));
+    const demo = el("a", { href: "#beispiel", text: "So sieht es mit Beispieldaten aus →" });
+    demo.addEventListener("click", () => setTimeout(() => location.reload(), 0));
+    box.append(el("h2", { text: "Noch keine Projekte eingetragen." }), ol, el("p", {}, demo));
+  }
+  document.getElementById("groups").append(box);
+}
+
+// «Projekte suchen»: Auftrag für den Claude-Code-Skill projekte-sammeln in die Zwischenablage.
+document.getElementById("sammeln").addEventListener("click", () => {
+  const text = ECHT.stand
+    ? `/projekte-sammeln Aktualisiere ${DATEI}. Letzter Stand: ${ECHT.stand}. Prüfe die vorhandenen Projekte auf neuen Fortschritt und ergänze neue Projekte.`
+    : `/projekte-sammeln alles. Erste Suche auf meinem Rechner, trage alle Projekte in ${DATEI} ein.`;
+  kopiere(text, "Auftrag kopiert. Claude Code starten und einfügen (Cmd+V).");
+});
+if (DEMO) {
+  document.getElementById("demoNote").hidden = false;
+  document.getElementById("demoAus").addEventListener("click", e => { e.preventDefault(); location.hash = ""; location.reload(); });
+}
+
+document.getElementById("stand").textContent = D.stand ? "Stand " + datum(D.stand) : "Noch kein Stand";
+renderStats();
+if (P.length) { renderAlert(); renderControls(); renderGroups(); } else renderLeer();
+</script>
+
+</body>
+</html>
