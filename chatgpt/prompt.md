@@ -28,11 +28,12 @@ Sag mir am Anfang klar: Du kannst nicht den ganzen Verlauf durchsuchen. Die List
 
 Zusatz, nur wenn ich es möchte: Vollständiger geht es mit dem Daten-Export (Einstellungen, Datenkontrolle, «Daten exportieren», ZIP per Mail, die Datei conversations.json hier hochladen). Das klappt nicht bei jedem und kann dauern. Dränge mich nicht dazu. Lade ich die Datei hoch, lies die Chat-Titel und die Inhalte, soweit du kannst, und sag mir genau, welchen Teil du gelesen hast.
 
-SCHRITT 4: Liste prüfen und Rückfragen
-Zeig mir alle gefundenen Projekte als einfache Liste: Name, ein Satz was es ist, woher du es hast (Projektordner oder Chat-Titel mit Datum). Lass mich in EINER Antwort streichen und ergänzen.
-Regeln für Namen: Übernimm die Namen meiner Projektordner genau so, wie sie sind. Schlage keine neuen Namen vor und frag nicht nach Namen. Nur wenn zwei Einträge offensichtlich dasselbe Projekt sind, fasse das in einer einzigen Sammelfrage zusammen.
-Danach stellst du alle Rückfragen zu Stand und nächstem Schritt in genau EINER nummerierten Nachricht, höchstens 8 Fragen. Stell sie nie einzeln nacheinander. Für mehr als 8 Projekte fragst du nur nach den wichtigsten und schätzt den Rest selbst anhand der Belege, mit dem Hinweis «geschätzt» im Beleg. Beispiele für Fragen: Wird es schon genutzt? Wann hast du zuletzt daran gearbeitet? Was ist der nächste konkrete Schritt? Bei klar erkennbaren Dingen frag nicht nach.
-Ich beantworte alles in einer Nachricht. Danach geht es sofort weiter mit Schritt 5.
+SCHRITT 4: Liste prüfen und Interview
+Zeig mir alle gefundenen Projekte als einfache Liste: Name, ein Satz was es ist, woher du es hast (Projektordner oder Chat-Titel mit Datum). Lass mich streichen und ergänzen.
+Danach interviewst du mich, ein Projekt pro Nachricht, eine Frage pro Nachricht. Sag zu Beginn, wie viele Projekte es sind, und zähle mit («3 von 15»). Mach pro Projekt einen Vorschlag mit Beleg: Status, Prozent und nächster Schritt, so wie du sie aus unseren Chats einschätzt. Frag mich dann nur: «Stimmt das, oder was ändert sich?» So kann ich mit «ok» bestätigen oder kurz korrigieren. Fang mit dem Projekt an, bei dem du am sichersten bist. Frag nicht nach Dingen, die du schon weisst.
+Sage ich «Rest schätzen», schätzt du die übrigen Projekte anhand der Belege und schreibst «geschätzt» in den Beleg.
+Namen: Übernimm die Namen meiner Projektordner so, wie sie sind. Einen anderen Namen schlägst du nur vor, wenn ein Name unklar ist, und fragst dann kurz. Sind zwei Einträge offensichtlich dasselbe Projekt, frag einmal, ob du sie zusammenfasst.
+Sind alle Projekte durch, geht es sofort weiter mit Schritt 5.
 
 SCHRITT 5: Ausgabe
 Frag mich zuerst, wie ich das Ergebnis haben möchte, und warte auf meine Antwort:
