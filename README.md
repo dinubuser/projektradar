@@ -20,8 +20,8 @@ Gut für alle, die viele Ideen anfangen und den Überblick verlieren.
 Kein Download, keine Installation.
 
 1. Öffne das Projektradar: <https://dinubuser.github.io/projektradar/> (oder lade `projektradar.html` herunter und öffne die Datei im Browser).
-2. Klicke auf **Prompt kopieren und Vorlage laden**. Das kopiert den Prompt und lädt die Datei `projektradar.html` herunter.
-3. Wechsle in ChatGPT oben auf **Work** und öffne dort einen neuen Chat. Füge den Prompt ein, hänge die Datei `projektradar.html` (die Vorlage) an dieselbe Nachricht an und sende sie. So braucht es keine Übergabe, und ChatGPT baut keine eigene Seite. ChatGPT bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern. Das ist der schnellste Weg. Danach sucht es selbst nach weiteren Projekten in deinem Chatverlauf.
+2. Klicke auf **ChatGPT-Prompt kopieren**.
+3. Wechsle in ChatGPT oben auf **Work** und öffne dort einen neuen Chat. Füge den Prompt ein und sende ihn. ChatGPT holt sich die Vorlage selbst und baut keine eigene Seite. Es bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern. Das ist der schnellste Weg. Danach sucht es selbst nach weiteren Projekten in deinem Chatverlauf. Kann es die Vorlage nicht holen, sagt es dir, wie du sie über **Vorlage herunterladen** anhängst.
 4. Am Ende fragt ChatGPT, wie du das Ergebnis möchtest:
    - **Fertige Seite als Datei (empfohlen):** ChatGPT trägt deine Projekte in die angehängte Vorlage ein und gibt dir die fertige Datei zurück. Speichere sie und öffne sie mit einem Doppelklick im Browser. Das ist dieselbe Seite wie bei Claude Code, mit deinen Projekten darin. Diesen Weg gibt es nur, wenn dein ChatGPT Dateien erzeugen kann (im Test ging das im Modus Work). Sieht die Seite anders aus als die Vorlage, hat ChatGPT sie nicht benutzt. Dann war die Vorlage nicht angehängt.
    - **Nur der Daten-Block:** ChatGPT gibt den Block aus. Kopiere ihn, klicke im Projektradar auf **Daten einfügen** und füge ihn ein.

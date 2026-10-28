@@ -246,7 +246,7 @@ dialog textarea:focus-visible { outline: 2px solid var(--accent); outline-offset
 
 Arbeite in dieser Reihenfolge. Geh nicht zum nächsten Schritt, bevor ich geantwortet habe.
 
-Hinweis zu deinem Modus: Am besten arbeitest du im Modus «Work», weil nur dort fertige Dateien entstehen. Hängt an meiner ersten Nachricht die Datei projektradar.html, ist das die Vorlage für Weg A. Benutze genau diese Vorlage. Baue nie selbst eine neue Seite, erfinde kein eigenes Design und kein eigenes Datenformat.
+Hinweis zu deinem Modus: Am besten arbeitest du im Modus «Work», weil nur dort fertige Dateien entstehen. Für Weg A brauchst du die Vorlage projektradar.html. Hängt sie an meiner ersten Nachricht, benutze genau diese. Sonst holst du sie dir selbst (siehe Weg A). Du musst mich nicht danach fragen. Baue nie selbst eine neue Seite, erfinde kein eigenes Design und kein eigenes Datenformat.
 
 SCHRITT 1: Ist das ein Update?
 Ist unter dem Strich unter «MEINE BISHERIGEN PROJEKTDATEN» ein JSON-Block eingefügt, oder habe ich eine Datei projektradar.html hochgeladen, in der Projekte stehen (Daten-Block mit der id radar), ist das ein Update. Lies die Daten, behalte alle Projekte und frag mich nur, was seit dem «stand» neu ist oder sich geändert hat. Springe dann zu Schritt 4. Stehen dort keine Projekte, ist es die erste Erfassung. Weiter mit Schritt 2.
@@ -291,7 +291,7 @@ Weg A, fertige Seite als Datei: Ich lade die Vorlage projektradar.html hier hoch
 Weg B, nur der Daten-Block: Du gibst mir den Block, und ich füge ihn auf meinem Projektradar unter «Daten einfügen» ein.
 
 Weg A, so gehst du vor:
-1. Die Vorlage projektradar.html hängt an meiner ersten Nachricht, oder ich lade sie jetzt hoch. Fehlt sie, versuche sie selbst von dieser Adresse zu holen: https://dinubuser.github.io/projektradar/projektradar.html und lade sie als Datei, ohne etwas daran zu ändern. Gelingt das nicht, sag mir, dass ich auf dieser Adresse den Knopf «Vorlage herunterladen» klicke und die Datei an den Chat hänge, oder biete mir Weg B an. Bau nie selbst eine eigene Seite. Lies die Datei als Text. Suche den Script-Tag, dessen Attribut id den Wert radar hat (type application/json). Er kommt genau einmal in der Datei vor.
+1. Die Vorlage holst du dir selbst, ausser sie hängt an meiner ersten Nachricht. Lade sie als Datei herunter (mit Python oder deinem Web-Werkzeug) von dieser Adresse: https://raw.githubusercontent.com/dinubuser/projektradar/main/projektradar.html. Tipp sie nie ab und schreib sie nie neu. Prüfe nach dem Download: Die Datei beginnt mit einem doctype-Hinweis, ist grösser als 30 KB und enthält genau einen Script-Tag mit der id radar. Klappt der Download nicht, probier https://dinubuser.github.io/projektradar/projektradar.html. Klappt auch das nicht, sag mir klar, dass du keinen Zugriff aufs Internet hast. Bitte mich dann, auf dieser Adresse den Knopf «Vorlage herunterladen» zu klicken und die Datei an den Chat zu hängen, oder biete mir Weg B an. Bau nie selbst eine eigene Seite. Lies die Datei als Text. Suche den Script-Tag, dessen Attribut id den Wert radar hat (type application/json). Er kommt genau einmal in der Datei vor.
 2. Ersetze NUR den Inhalt zwischen diesem Öffnungs-Tag und dem nächsten schliessenden Script-Tag durch den Daten-Block (gültiges JSON in einer Zeile). Alles andere in der Datei bleibt Zeichen für Zeichen gleich. Ändere kein Design und kein Skript.
 3. Prüfe danach mit Python: Das JSON lässt sich lesen, die Anzahl der Projekte stimmt, jeder Status ist einer der erlaubten Werte, und die Datei enthält genau einen Script-Tag mit der id radar.
 4. Gib mir die Datei als Download unter dem Namen projektradar.html. Sag mir in einem Satz: Datei speichern, mit einem Doppelklick im Browser öffnen, und die Datei enthält meine Projekte, also nicht weitergeben.
@@ -605,16 +605,16 @@ function renderLeer() {
 
   const gpt = el("section", { class: "way" }, el("h2", { text: "Mit ChatGPT" }),
     el("p", { text: "Funktioniert im normalen ChatGPT, ohne Terminal." }),
-    liste([LOKAL ? "«ChatGPT-Prompt kopieren» klicken." : "«Prompt kopieren und Vorlage laden» klicken. Das kopiert den Prompt und lädt die Datei projektradar.html herunter.",
-      "In ChatGPT oben auf «Work» wechseln und einen neuen Chat öffnen. Den Prompt einfügen, die Vorlage projektradar.html an dieselbe Nachricht anhängen (auf der Webseite: «Vorlage herunterladen», lokal: diese Datei) und senden. ChatGPT bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern und sucht danach selbst nach weiteren Projekten.",
+    liste(["«ChatGPT-Prompt kopieren» klicken.",
+      "In ChatGPT oben auf «Work» wechseln und einen neuen Chat öffnen. Den Prompt einfügen und senden. ChatGPT holt sich die Vorlage selbst, bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern und sucht danach selbst nach weiteren Projekten. Kann es die Vorlage nicht holen, sagt es dir, wie du sie anhängst.",
       "Am Ende fragt ChatGPT, was du möchtest. Entweder bekommst du deine fertige Seite als Datei zum Herunterladen (Weg A). Oder du kopierst den Daten-Block und fügst ihn hier unter «Daten einfügen» ein (Weg B)."]));
-  const b1 = el("button", { class: "btn", type: "button", text: LOKAL ? "ChatGPT-Prompt kopieren" : "Prompt kopieren und Vorlage laden" });
-  b1.addEventListener("click", () => { kopierePrompt(false, !LOKAL); if (!LOKAL) ladeVorlage(); });
+  const b1 = el("button", { class: "btn", type: "button", text: "ChatGPT-Prompt kopieren" });
+  b1.addEventListener("click", () => kopierePrompt(false));
   const b2 = el("button", { class: "btn alt", type: "button", text: "Daten einfügen" });
   b2.addEventListener("click", () => oeffneDialog());
   gpt.append(b1, b2);
   if (!LOKAL) {
-    const b4 = el("a", { class: "btn alt", href: "projektradar.html", download: "projektradar.html", text: "Vorlage herunterladen" });
+    const b4 = el("a", { class: "btn alt", href: "projektradar.html", download: "projektradar.html", text: "Vorlage herunterladen (nur falls nötig)" });
     gpt.append(b4);
   }
   ways.append(gpt);
@@ -750,14 +750,10 @@ document.getElementById("einfuegen").addEventListener("click", () => oeffneDialo
 document.getElementById("dlgAbbruch").addEventListener("click", () => dlg.close());
 document.getElementById("dlgOk").addEventListener("click", dlgOk);
 document.getElementById("dlgText").addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) dlgOk(); });
-function ladeVorlage() {
-  const a = el("a", { href: "projektradar.html", download: "projektradar.html" });
-  document.body.append(a); a.click(); a.remove();
-}
-function kopierePrompt(mitDaten, mitVorlage) {
+function kopierePrompt(mitDaten) {
   const prompt = document.getElementById("chatgpt-prompt").textContent.trim();
   const text = mitDaten && DATEN ? prompt + "\n" + JSON.stringify(DATEN) : prompt;
-  kopiere(text, mitDaten ? "Prompt mit deinen Daten kopiert. In einen neuen ChatGPT-Chat einfügen." : mitVorlage ? "Prompt kopiert, die Vorlage wird geladen. In Work einen neuen Chat öffnen, den Prompt einfügen und die Datei projektradar.html an dieselbe Nachricht anhängen." : "Prompt kopiert. In Work einen neuen Chat öffnen, einfügen und die Datei projektradar.html anhängen.");
+  kopiere(text, mitDaten ? "Prompt mit deinen Daten kopiert. In einen neuen ChatGPT-Chat einfügen." : "Prompt kopiert. In ChatGPT oben auf Work wechseln, einen neuen Chat öffnen, einfügen und senden.");
 }
 document.getElementById("promptBtn").addEventListener("click", () => kopierePrompt(true));
 document.getElementById("kopieren").addEventListener("click", () => kopiere(JSON.stringify(DATEN), "Daten kopiert."));
