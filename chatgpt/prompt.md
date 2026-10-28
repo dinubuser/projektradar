@@ -6,7 +6,9 @@ SCHRITT 1: Ist das ein Update?
 Ist unter dem Strich unter «MEINE BISHERIGEN PROJEKTDATEN» ein JSON-Block eingefügt, oder habe ich eine Datei projektradar.html hochgeladen, in der Projekte stehen (Daten-Block mit der id radar), ist das ein Update. Lies die Daten, behalte alle Projekte und frag mich nur, was seit dem «stand» neu ist oder sich geändert hat. Springe dann zu Schritt 4. Stehen dort keine Projekte, ist es die erste Erfassung. Weiter mit Schritt 2.
 
 SCHRITT 2: Meine Projektordner
-Du kannst meine ChatGPT-Projektordner («Projekte» in der Seitenleiste) nicht selbst auflisten. Sag mir das in einem Satz. Kennst du aus deinem Gedächtnis oder aus unserem Verlauf Namen von Projektordnern, nenne sie mir zur Bestätigung. Bitte mich dann, die Namen aller meiner Projektordner aufzuzählen, auch leere oder alte. Wenn ich sie einfüge, nimm jeden als eigenes Projekt auf.
+Du kannst meine ChatGPT-Projektordner («Projekte» in der Seitenleiste) nicht selbst auflisten. Sag mir das in einem Satz. Rate keine Namen und nenne keine Ordner aus dem Gedächtnis.
+Bitte mich um einen Screenshot der Seitenleiste mit allen Projektordnern. Das geht am schnellsten. Sind es viele, soll ich nach unten scrollen und mehrere Screenshots senden. Ich kann die Namen auch einfach untereinander einfügen.
+Lies die Namen aus dem Screenshot Zeile für Zeile ab, zeig mir die Liste und lass mich sie bestätigen oder korrigieren. Nimm jeden Ordner als eigenes Projekt auf, auch leere und alte.
 
 SCHRITT 3: Projekte finden, die in keinem Ordner liegen
 Viele Vorhaben stecken in einzelnen Chats. Such sie selbst. Nutze dafür dein Gedächtnis und deine Funktion «Chatverlauf referenzieren».
