@@ -20,10 +20,10 @@ Gut für alle, die viele Ideen anfangen und den Überblick verlieren.
 Kein Download, keine Installation.
 
 1. Öffne das Projektradar: <https://dinubuser.github.io/projektradar/> (oder lade `projektradar.html` herunter und öffne die Datei im Browser).
-2. Klicke auf **ChatGPT-Prompt kopieren**.
-3. Öffne in ChatGPT einen neuen Chat, füge den Prompt ein und sende ihn. ChatGPT bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern. Das ist der schnellste Weg. Danach sucht es selbst nach weiteren Projekten in deinem Chatverlauf.
+2. Klicke auf **ChatGPT-Prompt kopieren** und auf **Vorlage herunterladen**.
+3. Wechsle in ChatGPT oben auf **Work** und öffne dort einen neuen Chat. Füge den Prompt ein, hänge die Datei `projektradar.html` (die Vorlage) an dieselbe Nachricht an und sende sie. So braucht es keine Übergabe, und ChatGPT baut keine eigene Seite. ChatGPT bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern. Das ist der schnellste Weg. Danach sucht es selbst nach weiteren Projekten in deinem Chatverlauf.
 4. Am Ende fragt ChatGPT, wie du das Ergebnis möchtest:
-   - **Fertige Seite als Datei (empfohlen):** Klicke auf der Webseite auf **Vorlage herunterladen** und lade die Datei `projektradar.html` in den ChatGPT-Chat hoch. ChatGPT trägt deine Projekte ein und gibt dir die fertige Datei zurück. Speichere sie und öffne sie mit einem Doppelklick im Browser. Das ist dieselbe Seite wie bei Claude Code, mit deinen Projekten darin. Diesen Weg gibt es nur, wenn dein ChatGPT Dateien hochladen und bearbeiten kann.
+   - **Fertige Seite als Datei (empfohlen):** ChatGPT trägt deine Projekte in die angehängte Vorlage ein und gibt dir die fertige Datei zurück. Speichere sie und öffne sie mit einem Doppelklick im Browser. Das ist dieselbe Seite wie bei Claude Code, mit deinen Projekten darin. Diesen Weg gibt es nur, wenn dein ChatGPT Dateien erzeugen kann (im Test ging das im Modus Work). Sieht die Seite anders aus als die Vorlage, hat ChatGPT sie nicht benutzt. Dann war die Vorlage nicht angehängt.
    - **Nur der Daten-Block:** ChatGPT gibt den Block aus. Kopiere ihn, klicke im Projektradar auf **Daten einfügen** und füge ihn ein.
 
 Was ChatGPT kann und was nicht:
@@ -31,6 +31,7 @@ Was ChatGPT kann und was nicht:
 - Deine Projektordner («Projekte» in der Seitenleiste) kann ChatGPT nicht selbst auflisten. Du schickst ihm einen Screenshot der Seitenleiste oder nennst die Namen.
 - Den ganzen Verlauf durchsucht ChatGPT nur zuverlässig über den **Daten-Export** (Einstellungen → Datenkontrolle → Daten exportieren, die ZIP-Datei kommt per Mail, `conversations.json` im Chat hochladen). Ohne Export hängt es davon ab, was ChatGPT über «Chatverlauf referenzieren» abrufen kann. Die Liste ist dann wahrscheinlich unvollständig ([OpenAI: Memory in ChatGPT](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)).
 - Die Prozentzahlen sind Schätzungen. Prüfe sie, bevor du dich darauf verlässt.
+- Starte direkt in Work und hänge die Vorlage gleich an. Wechselst du mitten im Gespräch von Chat zu Work, bekommt Work nur eine kurze Zusammenfassung und baut leicht seine eigene Seite mit anderem Aussehen und anderen Feldern.
 
 Deine Daten werden nie an einen Server geschickt. Beim Weg mit dem Daten-Block liegen sie im Browser. Der Browser kann sie löschen (zum Beispiel beim Leeren der Website-Daten). Darum gibt es **Sichern als Datei** und **Aus Datei laden**. Sichere nach jeder Änderung. Bei der fertigen Datei stecken die Daten in der Datei selbst, die Datei ist deine Sicherung.
 

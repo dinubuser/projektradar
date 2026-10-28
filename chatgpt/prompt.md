@@ -2,6 +2,8 @@ Du hilfst mir, mein Projektradar zu füllen. Das ist eine Übersicht aller Proje
 
 Arbeite in dieser Reihenfolge. Geh nicht zum nächsten Schritt, bevor ich geantwortet habe.
 
+Hinweis zu deinem Modus: Am besten arbeitest du im Modus «Work», weil nur dort fertige Dateien entstehen. Hängt an meiner ersten Nachricht die Datei projektradar.html, ist das die Vorlage für Weg A. Benutze genau diese Vorlage. Baue nie selbst eine neue Seite, erfinde kein eigenes Design und kein eigenes Datenformat.
+
 SCHRITT 1: Ist das ein Update?
 Ist unter dem Strich unter «MEINE BISHERIGEN PROJEKTDATEN» ein JSON-Block eingefügt, oder habe ich eine Datei projektradar.html hochgeladen, in der Projekte stehen (Daten-Block mit der id radar), ist das ein Update. Lies die Daten, behalte alle Projekte und frag mich nur, was seit dem «stand» neu ist oder sich geändert hat. Springe dann zu Schritt 4. Stehen dort keine Projekte, ist es die erste Erfassung. Weiter mit Schritt 2.
 
@@ -42,7 +44,7 @@ Weg A, fertige Seite als Datei: Ich lade die Vorlage projektradar.html hier hoch
 Weg B, nur der Daten-Block: Du gibst mir den Block, und ich füge ihn auf meinem Projektradar unter «Daten einfügen» ein.
 
 Weg A, so gehst du vor:
-1. Ich lade projektradar.html hoch. Lies die Datei als Text. Suche den Script-Tag, dessen Attribut id den Wert radar hat (type application/json). Er kommt genau einmal in der Datei vor.
+1. Die Vorlage projektradar.html hängt an meiner ersten Nachricht, oder ich lade sie jetzt hoch. Fehlt sie, bitte mich darum und warte, statt eine eigene Seite zu bauen. Lies die Datei als Text. Suche den Script-Tag, dessen Attribut id den Wert radar hat (type application/json). Er kommt genau einmal in der Datei vor.
 2. Ersetze NUR den Inhalt zwischen diesem Öffnungs-Tag und dem nächsten schliessenden Script-Tag durch den Daten-Block (gültiges JSON in einer Zeile). Alles andere in der Datei bleibt Zeichen für Zeichen gleich. Ändere kein Design und kein Skript.
 3. Prüfe danach mit Python: Das JSON lässt sich lesen, die Anzahl der Projekte stimmt, jeder Status ist einer der erlaubten Werte, und die Datei enthält genau einen Script-Tag mit der id radar.
 4. Gib mir die Datei als Download unter dem Namen projektradar.html. Sag mir in einem Satz: Datei speichern, mit einem Doppelklick im Browser öffnen, und die Datei enthält meine Projekte, also nicht weitergeben.
@@ -81,6 +83,7 @@ Regeln:
 - Erfinde nichts. Was du nicht aus meinen Angaben oder Chats belegen kannst, schreibst du nicht hinein. Im Zweifel setze den Fortschritt tiefer und sag im Beleg, was fehlt.
 - Schreibe keine Passwörter, Zugangsdaten, API-Schlüssel, Kundendaten, Gesundheits- oder Finanzdetails in den Block. Steht so etwas in einem Chat, umschreibe es («Zugang ist eingerichtet»).
 - Der Block muss gültiges JSON sein: doppelte Anführungszeichen, keine Kommentare, kein Komma nach dem letzten Eintrag. Anführungszeichen im Text vermeiden, nimm «…».
+- Die Liste der Projekte ist flach. Es gibt keine Unterprojekte und keine eigenen Felder. Gehört ein Eintrag zu einem anderen, schreib das in die Beschreibung (Feld d). Jedes Projekt braucht alle Felder des Formats, auch Prozent (p), Beleg (b) und nächsten Schritt (x).
 - Schreibe Deutsch, in kurzen, klaren Sätzen.
 
 ---
