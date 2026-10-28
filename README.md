@@ -22,7 +22,9 @@ Kein Download, keine Installation.
 1. Öffne das Projektradar: <https://dinubuser.github.io/projektradar/> (oder lade `projektradar.html` herunter und öffne die Datei im Browser).
 2. Klicke auf **ChatGPT-Prompt kopieren**.
 3. Öffne in ChatGPT einen neuen Chat, füge den Prompt ein und sende ihn. ChatGPT fragt nach deinen Projektordnern und erklärt dir den Export deines Chatverlaufs.
-4. ChatGPT gibt am Ende einen Daten-Block aus. Kopiere ihn, klicke im Projektradar auf **Daten einfügen** und füge ihn ein.
+4. Am Ende fragt ChatGPT, wie du das Ergebnis möchtest:
+   - **Fertige Seite als Datei (empfohlen):** Klicke auf der Webseite auf **Vorlage herunterladen** und lade die Datei `projektradar.html` in den ChatGPT-Chat hoch. ChatGPT trägt deine Projekte ein und gibt dir die fertige Datei zurück. Speichere sie und öffne sie mit einem Doppelklick im Browser. Das ist dieselbe Seite wie bei Claude Code, mit deinen Projekten darin. Diesen Weg gibt es nur, wenn dein ChatGPT Dateien hochladen und bearbeiten kann.
+   - **Nur der Daten-Block:** ChatGPT gibt den Block aus. Kopiere ihn, klicke im Projektradar auf **Daten einfügen** und füge ihn ein.
 
 Was ChatGPT kann und was nicht:
 
@@ -30,9 +32,9 @@ Was ChatGPT kann und was nicht:
 - Den ganzen Verlauf durchsucht ChatGPT nur zuverlässig über den **Daten-Export** (Einstellungen → Datenkontrolle → Daten exportieren, die ZIP-Datei kommt per Mail, `conversations.json` im Chat hochladen). Ohne Export hängt es davon ab, was ChatGPT über «Chatverlauf referenzieren» abrufen kann. Die Liste ist dann wahrscheinlich unvollständig ([OpenAI: Memory in ChatGPT](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)).
 - Die Prozentzahlen sind Schätzungen. Prüfe sie, bevor du dich darauf verlässt.
 
-Deine Daten bleiben in deinem Browser und werden nie an einen Server geschickt. Der Browser kann sie löschen (zum Beispiel beim Leeren der Website-Daten). Darum gibt es **Sichern als Datei** und **Aus Datei laden**. Sichere nach jeder Änderung.
+Deine Daten werden nie an einen Server geschickt. Beim Weg mit dem Daten-Block liegen sie im Browser. Der Browser kann sie löschen (zum Beispiel beim Leeren der Website-Daten). Darum gibt es **Sichern als Datei** und **Aus Datei laden**. Sichere nach jeder Änderung. Bei der fertigen Datei stecken die Daten in der Datei selbst, die Datei ist deine Sicherung.
 
-Aktualisieren: Klicke auf **Mit ChatGPT aktualisieren**. Der Prompt enthält dann deine bisherigen Daten, und ChatGPT fragt nur nach dem, was neu ist.
+Aktualisieren: Klicke auf **Mit ChatGPT aktualisieren**. Der Prompt enthält dann deine bisherigen Daten, und ChatGPT fragt nur nach dem, was neu ist. Hast du eine fertige Datei, lade sie beim Aktualisieren wieder hoch.
 
 ## Mit Codex
 

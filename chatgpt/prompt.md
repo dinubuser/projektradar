@@ -3,23 +3,45 @@ Du hilfst mir, mein Projektradar zu füllen. Das ist eine Übersicht aller Proje
 Arbeite in dieser Reihenfolge. Geh nicht zum nächsten Schritt, bevor ich geantwortet habe.
 
 SCHRITT 1: Ist das ein Update?
-Steht unter dem Strich «MEINE BISHERIGEN PROJEKTDATEN» ein JSON-Block, ist das ein Update. Lies ihn, behalte alle Projekte und frag mich nur, was seit dem «stand» neu ist oder sich geändert hat. Springe dann zu Schritt 4. Steht dort nichts, ist es die erste Erfassung. Weiter mit Schritt 2.
+Ist unter dem Strich unter «MEINE BISHERIGEN PROJEKTDATEN» ein JSON-Block eingefügt, oder habe ich eine Datei projektradar.html hochgeladen, in der Projekte stehen (Daten-Block mit der id radar), ist das ein Update. Lies die Daten, behalte alle Projekte und frag mich nur, was seit dem «stand» neu ist oder sich geändert hat. Springe dann zu Schritt 4. Stehen dort keine Projekte, ist es die erste Erfassung. Weiter mit Schritt 2.
 
 SCHRITT 2: Meine Projektordner
-Du kannst meine ChatGPT-Projektordner («Projekte» in der Seitenleiste) nicht selbst sehen. Sag mir das in einem Satz. Bitte mich dann, die Namen aller meiner Projektordner aufzuzählen, auch leere oder alte. Wenn ich sie einfüge, nimm jeden als eigenes Projekt auf.
+Du kannst meine ChatGPT-Projektordner («Projekte» in der Seitenleiste) nicht selbst auflisten. Sag mir das in einem Satz. Kennst du aus deinem Gedächtnis oder aus unserem Verlauf Namen von Projektordnern, nenne sie mir zur Bestätigung. Bitte mich dann, die Namen aller meiner Projektordner aufzuzählen, auch leere oder alte. Wenn ich sie einfüge, nimm jeden als eigenes Projekt auf.
 
-SCHRITT 3: Projekte, die in keinem Ordner liegen
-Viele Vorhaben stecken in einzelnen Chats. Erkläre mir den besten Weg: den Daten-Export.
-1. ChatGPT öffnen, Profil, Einstellungen, Datenkontrolle, «Daten exportieren».
-2. ChatGPT schickt per Mail einen Link zu einer ZIP-Datei. Das kann einige Minuten dauern.
-3. ZIP entpacken und die Datei conversations.json hier in den Chat hochladen.
-Warte auf die Datei. Wenn ich sie hochlade: Lies alle Chat-Titel und die Inhalte, soweit du kannst. Suche konkrete Vorhaben, die über mehrere Chats wiederkehren oder die ein Ziel haben, zum Beispiel eine App, einen Kurs, eine Webseite, ein Business, eine Anschaffung, einen Umzug, einen Lernplan, ein Buch, ein Hobby-Projekt. Einmalige Fragen («Wie lange kocht man Eier?») sind keine Projekte. Wenn die Datei zu gross ist, um sie ganz zu lesen, sag mir genau, welchen Teil du gelesen hast.
-Habe ich keinen Export, frag, ob du es mit deiner Funktion «Chatverlauf referenzieren» versuchen sollst. Dann sag mir klar: Die Liste ist wahrscheinlich nicht vollständig, weil du nicht den ganzen Verlauf durchsuchen kannst.
+SCHRITT 3: Projekte finden, die in keinem Ordner liegen
+Viele Vorhaben stecken in einzelnen Chats. Such sie selbst. Nutze dafür dein Gedächtnis und deine Funktion «Chatverlauf referenzieren».
+Geh die folgenden Bereiche der Reihe nach durch, einen pro Nachricht, und frag mich nach jedem Bereich kurz, ob etwas fehlt oder nicht stimmt:
+1. Beruf und Arbeit
+2. Eigene Projekte, Business, Selbständigkeit
+3. Technik, Programmieren, Automatisierung
+4. Lernen, Kurse, Weiterbildung
+5. Familie, Haushalt, Kinder
+6. Haus, Garten, Umzug, Reisen, Anschaffungen
+7. Finanzen und Vorsorge
+8. Gesundheit und Sport
+9. Hobbys, Schreiben, Kreatives
+Pro Bereich: Welche Vorhaben mit einem Ziel erinnerst du? Einmalige Fragen («Wie lange kocht man Eier?») sind keine Projekte. Nenne zu jedem Fund kurz, woran du es festmachst (Thema der Chats, ungefähre Zeit). Erfinde nichts. Weisst du etwas nicht sicher, sag es.
+Kannst du nicht auf meinen Chatverlauf zugreifen, sag mir das und erkläre, wo ich «Chatverlauf referenzieren» einschalte (Einstellungen, Personalisierung oder Gedächtnis, je nach Version der App). Warte dann auf mich.
+Sag mir am Anfang klar: Du kannst nicht den ganzen Verlauf durchsuchen. Die Liste ist wahrscheinlich nicht vollständig, und das ist in Ordnung.
+
+Zusatz, nur wenn ich es möchte: Vollständiger geht es mit dem Daten-Export (Einstellungen, Datenkontrolle, «Daten exportieren», ZIP per Mail, die Datei conversations.json hier hochladen). Das klappt nicht bei jedem und kann dauern. Dränge mich nicht dazu. Lade ich die Datei hoch, lies die Chat-Titel und die Inhalte, soweit du kannst, und sag mir genau, welchen Teil du gelesen hast.
 
 SCHRITT 4: Liste prüfen und Rückfragen
 Zeig mir die gefundenen Projekte als einfache Liste: Name, ein Satz was es ist, woher du es hast (Projektordner oder Chat-Titel mit Datum). Lass mich streichen, umbenennen und ergänzen. Dann stell mir höchstens 8 Rückfragen zum Stand und zum nächsten Schritt, gebündelt in einer Nachricht, nicht einzeln. Beispiele: Wird es schon genutzt? Wann hast du zuletzt daran gearbeitet? Was ist der nächste konkrete Schritt? Bei klar erkennbaren Dingen frag nicht nach.
 
 SCHRITT 5: Ausgabe
+Frag mich zuerst, wie ich das Ergebnis haben möchte, und warte auf meine Antwort:
+Weg A, fertige Seite als Datei: Ich lade die Vorlage projektradar.html hier hoch. Du trägst die Projekte ein und gibst mir die fertige Datei zum Herunterladen.
+Weg B, nur der Daten-Block: Du gibst mir den Block, und ich füge ihn auf meinem Projektradar unter «Daten einfügen» ein.
+
+Weg A, so gehst du vor:
+1. Ich lade projektradar.html hoch. Lies die Datei als Text. Suche den Script-Tag, dessen Attribut id den Wert radar hat (type application/json). Er kommt genau einmal in der Datei vor.
+2. Ersetze NUR den Inhalt zwischen diesem Öffnungs-Tag und dem nächsten schliessenden Script-Tag durch den Daten-Block (gültiges JSON in einer Zeile). Alles andere in der Datei bleibt Zeichen für Zeichen gleich. Ändere kein Design und kein Skript.
+3. Prüfe danach mit Python: Das JSON lässt sich lesen, die Anzahl der Projekte stimmt, jeder Status ist einer der erlaubten Werte, und die Datei enthält genau einen Script-Tag mit der id radar.
+4. Gib mir die Datei als Download unter dem Namen projektradar.html. Sag mir in einem Satz: Datei speichern, mit einem Doppelklick im Browser öffnen, und die Datei enthält meine Projekte, also nicht weitergeben.
+Kannst du die Datei nicht bearbeiten oder keinen Download anbieten, sag es mir und nimm Weg B.
+
+Weg B, so gehst du vor:
 Gib mir genau einen JSON-Block in einem Codeblock aus, nichts anderes im Codeblock. Danach nur dieser Satz: «Kopiere den Block, öffne dein Projektradar und klicke auf Daten einfügen.»
 
 Das Format:

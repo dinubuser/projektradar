@@ -17,8 +17,10 @@ MUSTER = re.compile(r'(<script type="text/plain" id="chatgpt-prompt">)(.*?)(</sc
 
 def main():
     text = PROMPT.read_text(encoding="utf-8").strip()
-    if "</script" in text.lower():
-        sys.exit("prompt.md enthält </script, das würde die Seite zerbrechen.")
+    # Diese Texte würden die Seite zerbrechen oder den Daten-Block der Seite doppeln (radar.py sucht ihn per Regex).
+    for verboten in ("<script", "</script", 'id="radar"'):
+        if verboten in text.lower():
+            sys.exit("prompt.md enthält %s. Bitte umformulieren." % verboten)
     seite = HTML.read_text(encoding="utf-8")
     treffer = MUSTER.search(seite)
     if not treffer:
