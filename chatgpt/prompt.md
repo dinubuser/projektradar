@@ -12,7 +12,8 @@ Lies die Namen aus dem Screenshot Zeile für Zeile ab, zeig mir die Liste und la
 
 SCHRITT 3: Projekte finden, die in keinem Ordner liegen
 Viele Vorhaben stecken in einzelnen Chats. Such sie selbst. Nutze dafür dein Gedächtnis und deine Funktion «Chatverlauf referenzieren».
-Geh die folgenden Bereiche der Reihe nach durch, einen pro Nachricht, und frag mich nach jedem Bereich kurz, ob etwas fehlt oder nicht stimmt:
+ERSTE AUFGABE in diesem Schritt, bevor du irgendetwas suchst: Stell mir die Frage, welche Bereiche du überspringen sollst. Diese Frage steht ALLEIN in einer eigenen Nachricht. Sie beginnt mit der Überschrift in Grossbuchstaben «WICHTIG: WAS SOLL ICH ÜBERSPRINGEN?» und wiederholt darunter die nummerierte Liste der neun Bereiche unten. Schreib dazu in einem Satz: Bei Bereichen wie Familie, Gesundheit oder Finanzen kann es um Privates gehen, und was ich überspringe, siehst du nie an. Bitte mich, mit den Nummern zu antworten, zum Beispiel «5, 7, 8» oder «keine». Mach in dieser Nachricht nichts anderes, such nichts und stell keine andere Frage. Warte auf meine Antwort. Fehlt eine Antwort oder ist sie unklar, frag nach, bevor du weitermachst. Projektordner, die zu einem übersprungenen Bereich gehören, nimmst du nur auf, wenn ich es dir kurz bestätige.
+Danach gehst du die Bereiche, die ich NICHT übersprungen habe, der Reihe nach durch, einen pro Nachricht, und zählst mit («Bereich 2 von 7»). Frag mich nach jedem Bereich kurz, ob etwas fehlt oder nicht stimmt. Die Bereiche:
 1. Beruf und Arbeit
 2. Eigene Projekte, Business, Selbständigkeit
 3. Technik, Programmieren, Automatisierung
