@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mein Projektradar</title>
 <!-- Projektradar: https://github.com/dinubuser/projektradar
-     Die Projekte stehen im JSON-Block #radar weiter unten. Gefüllt vom Claude-Code-Skill projekte-sammeln. -->
+     Die Projekte stehen im JSON-Block #radar weiter unten. Gefüllt von Claude Code oder Codex (Skill projekte-sammeln) oder über «Daten einfügen» (zum Beispiel aus ChatGPT). -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -77,7 +77,7 @@ header h1 span { background: linear-gradient(90deg, var(--accent), var(--accent-
 /* Aufmerksamkeit */
 .alert { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
 .alert h2 { font-size: 22px; font-weight: 700; }
-.alert ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px 24px; }
+.alert ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 10px 24px; }
 .alert li { display: flex; gap: 10px; font-size: 14px; color: var(--fg); min-width: 0; }
 .alert li::before { content: ""; flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--pause); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pause) 18%, transparent); }
 .alert li.crit::before { background: var(--stop); box-shadow: 0 0 0 4px color-mix(in srgb, var(--stop) 18%, transparent); }
@@ -153,11 +153,32 @@ body { margin: 0; }
 .empty-box p { margin: 0; }
 .empty-box ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
 .empty-box a { color: var(--accent); }
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--panel-2); color: var(--fg); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 16px; font-size: 14px; max-width: calc(100vw - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: opacity .2s, transform .2s; z-index: 20; }
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; background: var(--panel-2); color: var(--fg); border: 1px solid var(--accent); border-radius: 12px; padding: 12px 16px; font-size: 14px; max-width: calc(100vw - 32px); box-shadow: 0 10px 30px rgba(0,0,0,.4); transition: opacity .2s, transform .2s; z-index: 20; white-space: pre-line; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .demo-note { font: 600 12px var(--font-mono); color: var(--pause); }
 .demo-note a { color: inherit; }
 footer a { color: inherit; }
+.btn.alt { color: var(--fg); background: var(--panel-2); border-color: var(--line); }
+.btn.alt:hover { border-color: var(--accent); filter: none; }
+.link-btn { font: 500 13px var(--font-body); color: var(--muted); background: none; border: 0; padding: 6px 4px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.link-btn:hover { color: var(--fg); }
+.link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn[hidden], .link-btn[hidden] { display: none; }
+.ways { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 16px; }
+.way { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px; color: var(--muted); }
+.way h2 { color: var(--fg); font-size: 20px; }
+.way p { margin: 0; }
+.way ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.way a { color: var(--accent); }
+.way .btn { align-self: flex-start; }
+dialog { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 16px; padding: 22px; width: min(640px, calc(100vw - 32px)); }
+dialog::backdrop { background: rgba(5, 6, 10, .7); }
+dialog h2 { font-size: 22px; margin-bottom: 8px; }
+dialog p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+dialog textarea { width: 100%; min-height: 220px; resize: vertical; font: 13px var(--font-mono); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+dialog textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.dlg-err { white-space: pre-line; color: var(--stop); font-size: 14px; min-height: 1.4em; margin: 8px 0 0; }
+.dlg-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -167,9 +188,15 @@ footer a { color: inherit; }
     <div>
       <div class="eyebrow" id="stand">Noch kein Stand</div>
       <h1>Mein <span>Projekt&shy;radar</span></h1>
-      <p class="lead">Alle angefangenen Projekte an einem Ort, sortiert nach Fortschritt. 0&nbsp;% heisst nur Idee, 100&nbsp;% heisst läuft im Alltag. Tippe auf eine Karte für Fundort und Beleg. Ein Klick auf den nächsten Schritt kopiert einen fertigen Auftrag für Claude Code.</p>
+      <p class="lead">Alle angefangenen Projekte an einem Ort, sortiert nach Fortschritt. 0&nbsp;% heisst nur Idee, 100&nbsp;% heisst läuft im Alltag. Tippe auf eine Karte für Fundort und Beleg. Ein Klick auf den nächsten Schritt kopiert einen fertigen Auftrag für deine KI.</p>
       <div class="head-actions">
         <button class="btn" type="button" id="sammeln">↻ Projekte suchen</button>
+        <button class="btn" type="button" id="promptBtn" hidden>↻ Mit ChatGPT aktualisieren</button>
+        <button class="btn alt" type="button" id="einfuegen" hidden>Daten einfügen</button>
+        <button class="link-btn" type="button" id="kopieren" hidden>Daten kopieren</button>
+        <button class="link-btn" type="button" id="sichern" hidden>Sichern als Datei</button>
+        <button class="link-btn" type="button" id="laden" hidden>Aus Datei laden</button>
+        <input type="file" id="ladeDatei" accept=".json,application/json" hidden>
         <span class="demo-note" id="demoNote" hidden>Beispieldaten · <a href="#" id="demoAus">ausblenden</a></span>
       </div>
     </div>
@@ -197,10 +224,81 @@ footer a { color: inherit; }
 
   <main id="groups"></main>
 
-  <footer>Die Prozentzahlen sind Einschätzungen von Claude anhand der Belege auf jeder Karte. Die Datei liegt nur auf deinem Rechner. Sie enthält Ordnerpfade, also nicht öffentlich teilen. Vorlage: <a href="https://github.com/dinubuser/projektradar">github.com/dinubuser/projektradar</a></footer>
+  <footer id="foot"><span id="footText">Die Prozentzahlen sind Einschätzungen der KI anhand der Belege auf jeder Karte.</span> Deine Daten bleiben auf deinem Gerät und werden nie an einen Server geschickt. Sie können Ordnerpfade enthalten, also nicht öffentlich teilen. Vorlage: <a href="https://github.com/dinubuser/projektradar">github.com/dinubuser/projektradar</a></footer>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="dlg" aria-labelledby="dlgH">
+  <h2 id="dlgH">Daten einfügen</h2>
+  <p>Füge hier den Daten-Block ein, den ChatGPT dir gegeben hat. Er beginnt mit einer geschweiften Klammer. Ein Codeblock mit ```json drumherum ist in Ordnung. Die vorhandenen Daten in diesem Browser werden ersetzt. Sichere sie danach mit «Sichern als Datei», damit sie nicht verloren gehen.</p>
+  <textarea id="dlgText" spellcheck="false" aria-label="Daten-Block" aria-describedby="dlgErr" placeholder='{"stand": "JJJJ-MM-TT", "projekte": [ ... ]}'></textarea>
+  <p class="dlg-err" id="dlgErr" role="alert"></p>
+  <div class="dlg-actions">
+    <button class="btn alt" type="button" id="dlgAbbruch">Abbrechen</button>
+    <button class="btn" type="button" id="dlgOk">Übernehmen</button>
+  </div>
+</dialog>
+
+<!-- Prompt für ChatGPT. Quelle: chatgpt/prompt.md, eingesetzt mit chatgpt/sync-prompt.py. Nicht von Hand ändern. -->
+<script type="text/plain" id="chatgpt-prompt">Du hilfst mir, mein Projektradar zu füllen. Das ist eine Übersicht aller Projekte, die ich angefangen habe, mit Fortschritt in Prozent, Beleg und nächstem Schritt. Am Ende gibst du mir einen fertigen Daten-Block, den ich in die Seite einfüge.
+
+Arbeite in dieser Reihenfolge. Geh nicht zum nächsten Schritt, bevor ich geantwortet habe.
+
+SCHRITT 1: Ist das ein Update?
+Steht unter dem Strich «MEINE BISHERIGEN PROJEKTDATEN» ein JSON-Block, ist das ein Update. Lies ihn, behalte alle Projekte und frag mich nur, was seit dem «stand» neu ist oder sich geändert hat. Springe dann zu Schritt 4. Steht dort nichts, ist es die erste Erfassung. Weiter mit Schritt 2.
+
+SCHRITT 2: Meine Projektordner
+Du kannst meine ChatGPT-Projektordner («Projekte» in der Seitenleiste) nicht selbst sehen. Sag mir das in einem Satz. Bitte mich dann, die Namen aller meiner Projektordner aufzuzählen, auch leere oder alte. Wenn ich sie einfüge, nimm jeden als eigenes Projekt auf.
+
+SCHRITT 3: Projekte, die in keinem Ordner liegen
+Viele Vorhaben stecken in einzelnen Chats. Erkläre mir den besten Weg: den Daten-Export.
+1. ChatGPT öffnen, Profil, Einstellungen, Datenkontrolle, «Daten exportieren».
+2. ChatGPT schickt per Mail einen Link zu einer ZIP-Datei. Das kann einige Minuten dauern.
+3. ZIP entpacken und die Datei conversations.json hier in den Chat hochladen.
+Warte auf die Datei. Wenn ich sie hochlade: Lies alle Chat-Titel und die Inhalte, soweit du kannst. Suche konkrete Vorhaben, die über mehrere Chats wiederkehren oder die ein Ziel haben, zum Beispiel eine App, einen Kurs, eine Webseite, ein Business, eine Anschaffung, einen Umzug, einen Lernplan, ein Buch, ein Hobby-Projekt. Einmalige Fragen («Wie lange kocht man Eier?») sind keine Projekte. Wenn die Datei zu gross ist, um sie ganz zu lesen, sag mir genau, welchen Teil du gelesen hast.
+Habe ich keinen Export, frag, ob du es mit deiner Funktion «Chatverlauf referenzieren» versuchen sollst. Dann sag mir klar: Die Liste ist wahrscheinlich nicht vollständig, weil du nicht den ganzen Verlauf durchsuchen kannst.
+
+SCHRITT 4: Liste prüfen und Rückfragen
+Zeig mir die gefundenen Projekte als einfache Liste: Name, ein Satz was es ist, woher du es hast (Projektordner oder Chat-Titel mit Datum). Lass mich streichen, umbenennen und ergänzen. Dann stell mir höchstens 8 Rückfragen zum Stand und zum nächsten Schritt, gebündelt in einer Nachricht, nicht einzeln. Beispiele: Wird es schon genutzt? Wann hast du zuletzt daran gearbeitet? Was ist der nächste konkrete Schritt? Bei klar erkennbaren Dingen frag nicht nach.
+
+SCHRITT 5: Ausgabe
+Gib mir genau einen JSON-Block in einem Codeblock aus, nichts anderes im Codeblock. Danach nur dieser Satz: «Kopiere den Block, öffne dein Projektradar und klicke auf Daten einfügen.»
+
+Das Format:
+{
+ "stand": "JJJJ-MM-TT",
+ "aufmerksamkeit": [ {"t": "Projektname", "text": "Was drängt, ein Satz.", "crit": false} ],
+ "projekte": [
+  {"n": "Name", "c": "Kategorie", "s": "lauft", "p": 40,
+   "d": "Was das Projekt ist, 1 bis 2 Sätze.",
+   "w": "Wo es liegt, zum Beispiel ChatGPT-Projekt «Name» oder Chat «Titel»",
+   "l": "JJJJ-MM-TT", "x": "Nächster Schritt, ein konkreter Satz.",
+   "b": "Beleg: woran die Einschätzung hängt."}
+ ]
+}
+
+Bedeutung der Felder:
+- stand: heutiges Datum. Frag mich danach, wenn du es nicht sicher weisst.
+- n: Name. Bei einem Update die bestehenden Namen nicht ändern.
+- c: Kategorie. Wenige, breite Kategorien, zum Beispiel Arbeit, Familie, Lernen, Gesundheit, Finanzen, Hobby, Business.
+- s: Status. «lauft» = wird im Alltag genutzt. «bau» = es wird daran gearbeitet. «pause» = angefangen, seit über 6 Wochen still. «idee» = nur ein Gedanke oder eine Notiz. «fertig» = abgeschlossen. «stop» = bewusst aufgegeben.
+- p: Prozent, ganze Zahl von 0 bis 100. 100 = läuft im Alltag. 80 bis 99 = fast fertig. 60 bis 79 = Kern funktioniert. 30 bis 59 = im Aufbau. 10 bis 29 = Konzept oder Entwurf. 0 bis 9 = nur Idee. Hat ein Projekt Etappen oder eine Checkliste, rechne daraus.
+- d: Was es ist.
+- w: Fundort. Wo ich es wiederfinde: Ordnername, Chat-Titel, Datei.
+- l: Datum der letzten Arbeit daran. Unbekannt: «–».
+- x: Nächster Schritt. Ein Satz, mit dem ich morgen anfangen kann. «–» wenn nichts mehr nötig ist.
+- b: Beleg. Woran du die Prozentzahl festmachst.
+- aufmerksamkeit: höchstens 8 Punkte, nur was wirklich drängt, zum Beispiel eine verpasste Frist oder ein auslaufender Zugang. Gibt es nichts, lass die Liste leer: []. «crit»: true nur, wenn etwas kaputt ist oder etwas verloren gehen kann.
+
+Regeln:
+- Erfinde nichts. Was du nicht aus meinen Angaben oder Chats belegen kannst, schreibst du nicht hinein. Im Zweifel setze den Fortschritt tiefer und sag im Beleg, was fehlt.
+- Schreibe keine Passwörter, Zugangsdaten, API-Schlüssel, Kundendaten, Gesundheits- oder Finanzdetails in den Block. Steht so etwas in einem Chat, umschreibe es («Zugang ist eingerichtet»).
+- Der Block muss gültiges JSON sein: doppelte Anführungszeichen, keine Kommentare, kein Komma nach dem letzten Eintrag. Anführungszeichen im Text vermeiden, nimm «…».
+- Schreibe Deutsch, in kurzen, klaren Sätzen.
+
+---
+MEINE BISHERIGEN PROJEKTDATEN (leer lassen bei der ersten Erfassung):</script>
 
 <!-- Daten. Schema in skills/projekte-sammeln/SKILL.md. Muss gültiges JSON bleiben. -->
 <script type="application/json" id="radar">{"stand": "", "aufmerksamkeit": [], "projekte": []}</script>
@@ -233,12 +331,28 @@ const BEISPIEL = {
 };
 
 function ladeDaten() {
-  try { return JSON.parse(document.getElementById("radar").textContent); }
+  try {
+    const o = JSON.parse(document.getElementById("radar").textContent);
+    return { stand: (o && typeof o.stand === "string") ? o.stand : "", aufmerksamkeit: (o && Array.isArray(o.aufmerksamkeit)) ? o.aufmerksamkeit : [], projekte: (o && Array.isArray(o.projekte)) ? o.projekte : [] };
+  }
   catch (e) { console.error("Projektradar: JSON-Block #radar ist kaputt", e); return { stand: "", aufmerksamkeit: [], projekte: [], kaputt: true }; }
 }
 const ECHT = ladeDaten();
-const DEMO = !ECHT.projekte.length && location.hash === "#beispiel";
-const D = DEMO ? BEISPIEL : ECHT;
+// Zwei Betriebsarten: «datei» = die Projekte stehen im Block #radar (gefüllt von Claude Code oder Codex),
+// «browser» = Block leer, die Projekte liegen im localStorage dieses Browsers (gefüllt über «Daten einfügen», zum Beispiel aus ChatGPT).
+const MODUS = (ECHT.projekte.length || ECHT.kaputt) ? "datei" : "browser";
+const SPEICHER = "projektradar.v1";
+const LOKAL = location.protocol === "file:";
+const REPO = "https://github.com/dinubuser/projektradar";
+function ladeGespeichert() {
+  try {
+    const o = JSON.parse(localStorage.getItem(SPEICHER) || "null");
+    return o && Array.isArray(o.projekte) && o.projekte.length ? o : null;
+  } catch (e) { return null; }
+}
+const GESPEICHERT = MODUS === "browser" ? ladeGespeichert() : null;
+const DEMO = !ECHT.projekte.length && !ECHT.kaputt && !GESPEICHERT && location.hash === "#beispiel";
+const D = DEMO ? BEISPIEL : (GESPEICHERT || ECHT);
 const P = D.projekte;
 
 const BANDS = [
@@ -278,10 +392,10 @@ function toast(text) {
 // file://-Seiten haben nicht in jedem Browser navigator.clipboard, darum der Rückfall auf execCommand.
 function kopiere(text, meldung) {
   const fallback = () => {
-    const ta = el("textarea"); ta.value = text; document.body.append(ta); ta.select();
+    const ta = el("textarea"); ta.value = text; ta.style.cssText = "position:fixed;top:0;opacity:0"; document.body.append(ta); ta.select();
     let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
     ta.remove();
-    toast(ok ? meldung : "Kopieren ging nicht. Auftrag: " + text);
+    toast(ok ? meldung : "Kopieren ging nicht." + (text.length < 600 ? " Text zum Selbstkopieren: " + text : " Dein Browser blockiert die Zwischenablage."));
   };
   if (navigator.clipboard) navigator.clipboard.writeText(text).then(() => toast(meldung), fallback);
   else fallback();
@@ -296,11 +410,14 @@ function ordnerOf(p) {
   return "";
 }
 function auftrag(p) {
+  if (MODUS === "browser") {
+    return `Projekt «${p.n}» · Nächster Schritt: ${p.x} · Fundort: ${p.w || "–"} · Hilf mir, mit diesem Schritt anzufangen. Frag mich zuerst kurz, was ich schon dazu habe.`;
+  }
   const ordner = ordnerOf(p);
   return `Projekt «${p.n}» · Nächster Schritt: ${p.x}` +
     (ordner ? ` · Ordner: ${ordner}` : "") +
     ` · Fundort: ${p.w} · Lies zuerst den aktuellen Stand, dann legen wir mit diesem Schritt los.` +
-    ` Wenn der Schritt erledigt ist, führe mit /projekte-sammeln den Eintrag «${p.n}» in ${DATEI} nach (Prozent, nächster Schritt, Beleg, Zuletzt).`;
+    ` Wenn der Schritt erledigt ist, führe mit dem Skill projekte-sammeln den Eintrag «${p.n}» in ${DATEI} nach (Prozent, nächster Schritt, Beleg, Zuletzt).`;
 }
 
 function el(tag, attrs = {}, ...kids) {
@@ -342,8 +459,8 @@ function card(p) {
   c.append(el("div", { class: "card-top" }, ring(p.p, band.color), head));
   if (p.d) c.append(el("p", { class: "desc", text: p.d }));
   if (p.x && p.x !== "–") {
-    const go = el("button", { class: "next", type: "button", title: "Auftrag für Claude Code kopieren" }, el("b", { text: "Nächster Schritt" }), el("span", { text: p.x }), el("i", { text: "⧉ Claude" }));
-    go.addEventListener("click", e => { e.stopPropagation(); kopiere(auftrag(p), "Auftrag kopiert. In Claude Code einfügen (Cmd+V)."); });
+    const go = el("button", { class: "next", type: "button", title: "Auftrag kopieren" }, el("b", { text: "Nächster Schritt" }), el("span", { text: p.x }), el("i", { text: "⧉ Kopieren" }));
+    go.addEventListener("click", e => { e.stopPropagation(); kopiere(auftrag(p), "Auftrag kopiert. In deine KI einfügen (Cmd+V oder Strg+V)."); });
     go.addEventListener("keydown", e => e.stopPropagation());
     c.append(go);
   }
@@ -441,27 +558,185 @@ function renderLeer() {
   const box = el("section", { class: "empty-box" });
   if (ECHT.kaputt) {
     box.append(el("h2", { text: "Die Projektdaten sind beschädigt." }),
-      el("p", { text: "Der JSON-Block #radar in dieser Datei ist kein gültiges JSON mehr. Sag Claude Code: «/projekte-sammeln repariere " + DATEI + "». Der Skill legt vor jeder Änderung ein Backup an." }));
-  } else {
-    const ol = el("ol");
-    ["Oben auf «↻ Projekte suchen» klicken. Der Auftrag liegt dann in der Zwischenablage.",
-     "Claude Code starten (claude im Terminal) und den Auftrag einfügen.",
-     "Claude durchsucht deinen Rechner nach Projekten, schätzt den Stand und trägt alles hier ein. Das dauert etwa 10 bis 20 Minuten.",
-     "Seite neu laden (Cmd+R)."].forEach(t => ol.append(el("li", { text: t })));
-    const demo = el("a", { href: "#beispiel", text: "So sieht es mit Beispieldaten aus →" });
-    demo.addEventListener("click", () => setTimeout(() => location.reload(), 0));
-    box.append(el("h2", { text: "Noch keine Projekte eingetragen." }), ol, el("p", {}, demo));
+      el("p", { text: "Der JSON-Block #radar in dieser Datei ist kein gültiges JSON mehr. Sag Claude Code oder Codex: «Nutze den Skill projekte-sammeln und repariere " + DATEI + "». Der Skill legt vor jeder Änderung ein Backup an." }));
+    document.getElementById("groups").append(box);
+    return;
   }
-  document.getElementById("groups").append(box);
+  const liste = items => { const ol = el("ol"); items.forEach(t => ol.append(el("li", { text: t }))); return ol; };
+  const ways = el("div", { class: "ways" });
+
+  const gpt = el("section", { class: "way" }, el("h2", { text: "Mit ChatGPT" }),
+    el("p", { text: "Funktioniert im normalen ChatGPT, ohne Terminal." }),
+    liste(["«ChatGPT-Prompt kopieren» klicken.",
+      "In ChatGPT einen neuen Chat öffnen, den Prompt einfügen und senden. ChatGPT fragt nach deinen Projektordnern und erklärt, wie du deinen Chatverlauf exportierst.",
+      "Am Ende gibt ChatGPT einen Daten-Block aus. Kopieren, hier auf «Daten einfügen» klicken und einfügen."]));
+  const b1 = el("button", { class: "btn", type: "button", text: "ChatGPT-Prompt kopieren" });
+  b1.addEventListener("click", () => kopierePrompt(false));
+  const b2 = el("button", { class: "btn alt", type: "button", text: "Daten einfügen" });
+  b2.addEventListener("click", () => oeffneDialog());
+  gpt.append(b1, b2);
+  ways.append(gpt);
+
+  if (LOKAL) {
+    const cc = el("section", { class: "way" }, el("h2", { text: "Mit Claude Code oder Codex" }),
+      el("p", { text: "Die KI liest deinen Rechner selbst und findet auch Projekte in Ordnern. Braucht ein Terminal. Die Daten landen dann in der Seite. Hast du schon Daten im Browser, sichere sie vorher als Datei." }),
+      liste(["«Auftrag kopieren» klicken.",
+        "Claude Code starten (claude im Terminal) und den Auftrag einfügen. Das dauert bei der ersten Suche etwa 10 bis 20 Minuten.",
+        "Seite neu laden."]));
+    const b3 = el("button", { class: "btn", type: "button", text: "Auftrag kopieren" });
+    b3.addEventListener("click", kopiereSammelAuftrag);
+    cc.append(b3);
+    ways.append(cc);
+  } else {
+    const hinweis = el("p", {}, document.createTextNode("Du willst, dass die KI deinen Rechner selbst durchsucht? "), el("a", { href: REPO, text: "Anleitung für Claude Code und Codex auf GitHub" }));
+    ways.firstChild.append(hinweis);
+  }
+  const demo = el("a", { href: "#beispiel", text: "So sieht es mit Beispieldaten aus →" });
+  demo.addEventListener("click", () => setTimeout(() => location.reload(), 0));
+  const root = document.getElementById("groups");
+  root.append(el("h2", { text: "Noch keine Projekte eingetragen." }), ways, el("p", { class: "empty" }, demo));
 }
 
-// «Projekte suchen»: Auftrag für den Claude-Code-Skill projekte-sammeln in die Zwischenablage.
-document.getElementById("sammeln").addEventListener("click", () => {
+// «Projekte suchen» (nur Claude Code / Codex, nur lokal): Auftrag für den Skill projekte-sammeln in die Zwischenablage.
+function kopiereSammelAuftrag() {
   const text = ECHT.stand
-    ? `/projekte-sammeln Aktualisiere ${DATEI}. Letzter Stand: ${ECHT.stand}. Prüfe die vorhandenen Projekte auf neuen Fortschritt und ergänze neue Projekte.`
-    : `/projekte-sammeln alles. Erste Suche auf meinem Rechner, trage alle Projekte in ${DATEI} ein.`;
-  kopiere(text, "Auftrag kopiert. Claude Code starten und einfügen (Cmd+V).");
+    ? `Nutze den Skill projekte-sammeln. Aktualisiere ${DATEI}. Letzter Stand: ${ECHT.stand}. Prüfe die vorhandenen Projekte auf neuen Fortschritt und ergänze neue Projekte.`
+    : `Nutze den Skill projekte-sammeln. Erste Suche auf meinem Rechner, trage alle Projekte in ${DATEI} ein.`;
+  kopiere(text, "Auftrag kopiert. Claude Code oder Codex starten und einfügen (Cmd+V).");
+}
+document.getElementById("sammeln").addEventListener("click", kopiereSammelAuftrag);
+
+// --- Betriebsart «browser»: Daten einfügen, kopieren, sichern, laden ---
+const STATI = Object.keys(STATUS);
+const GEHEIM = [
+  /(passwort|password|kennwort|token|api[-_ ]?key|secret)\s*[:=]\s*\S+/i,
+  /\b(sk-[A-Za-z0-9_-]{16,}|ghp_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{12,})/,
+  /bearer\s+[A-Za-z0-9._-]{20,}/i
+];
+function heute() {
+  const d = new Date();
+  return [d.getFullYear(), String(d.getMonth() + 1).padStart(2, "0"), String(d.getDate()).padStart(2, "0")].join("-");
+}
+// Sucht den Daten-Block im eingefügten Text: zuerst in ```-Zäunen, dann im ganzen Text, ab jeder öffnenden Klammer.
+function findeJson(roh) {
+  const t = String(roh || "").trim();
+  const kandidaten = [...t.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)].map(m => m[1]);
+  kandidaten.push(t);
+  let letzter = "";
+  for (const k of kandidaten) {
+    const starts = [], ends = [];
+    for (let i = 0; i < k.length; i++) { if (k[i] === "{") starts.push(i); else if (k[i] === "}") ends.push(i); }
+    ends.reverse();
+    for (const a of starts.slice(0, 40)) for (const z of ends.slice(0, 40)) {
+      if (z < a) continue;
+      try {
+        const o = JSON.parse(k.slice(a, z + 1));
+        if (o && typeof o === "object" && !Array.isArray(o) && "projekte" in o) return { o };
+      } catch (e) { letzter = e.message; }
+    }
+  }
+  return { fehler: letzter
+    ? "Der Block ist kein gültiges JSON (" + letzter + "). Sag ChatGPT: «Der Block ist kein gültiges JSON. Gib ihn bitte korrigiert noch einmal aus.»"
+    : "Ich finde keinen Daten-Block. Er muss mit { beginnen, mit } enden und die Liste «projekte» enthalten." };
+}
+const norm = s => String(s).trim().replace(/\s+/g, " ").toLowerCase();
+// Nimmt Text aus ChatGPT (auch mit ```json-Zaun oder Begleittext) und gibt { daten } oder { fehler } zurück.
+// behalteStand: beim Wiederherstellen einer Sicherung den gespeicherten Stand behalten.
+function validiere(roh, behalteStand) {
+  const f = findeJson(roh);
+  if (f.fehler) return f;
+  const o = f.o;
+  if (!Array.isArray(o.projekte) || !o.projekte.length) return { fehler: "Die Liste «projekte» fehlt oder ist leer." };
+  const fehler = [];
+  const namen = new Set();
+  const str = v => (typeof v === "string" || typeof v === "number") ? String(v) : "";
+  const projekte = o.projekte.map((p, i) => {
+    if (!p || typeof p !== "object" || Array.isArray(p)) { fehler.push("Projekt " + (i + 1) + ": kein gültiger Eintrag."); return null; }
+    const name = str(p.n).trim();
+    const wo = "Projekt " + (i + 1) + (name ? " («" + name + "»)" : "");
+    if (!name) fehler.push(wo + ": der Name «n» fehlt.");
+    else if (namen.has(norm(name))) fehler.push(wo + ": der Name kommt doppelt vor.");
+    else namen.add(norm(name));
+    if (!STATI.includes(p.s)) fehler.push(wo + ": der Status «s» muss einer von " + STATI.join(", ") + " sein.");
+    let pz = NaN;
+    if (typeof p.p === "number") pz = p.p;
+    else if (typeof p.p === "string" && /^\s*\d+(\.\d+)?\s*%?\s*$/.test(p.p)) pz = parseFloat(p.p);
+    pz = Math.round(pz);
+    if (!Number.isFinite(pz) || pz < 0 || pz > 100) fehler.push(wo + ": das Prozent «p» muss eine Zahl von 0 bis 100 sein.");
+    const r = { n: name, c: str(p.c).trim(), s: p.s, p: pz, d: str(p.d), w: str(p.w), l: str(p.l) || "–", x: str(p.x) || "–", b: str(p.b) };
+    if (p.cwd) r.cwd = str(p.cwd);
+    for (const k of ["n", "c", "d", "w", "x", "b"]) {
+      if (GEHEIM.some(re => re.test(r[k]))) fehler.push(wo + ", Feld «" + k + "»: das sieht nach Passwort oder Zugangsschlüssel aus. Bitte ChatGPT, es zu entfernen oder zu umschreiben.");
+    }
+    return r;
+  });
+  if (fehler.length) return { fehler: fehler.slice(0, 5).join("\n") + (fehler.length > 5 ? "\n… und " + (fehler.length - 5) + " weitere." : "") };
+  const aufmerksamkeit = (Array.isArray(o.aufmerksamkeit) ? o.aufmerksamkeit : [])
+    .filter(a => a && typeof a === "object" && str(a.text)).slice(0, 8)
+    .map(a => ({ t: str(a.t), text: str(a.text), crit: a.crit === true }));
+  const stand = behalteStand && /^\d{4}-\d{2}-\d{2}$/.test(o.stand || "") ? o.stand : heute();
+  return { daten: { stand, aufmerksamkeit, projekte } };
+}
+function speichere(daten) {
+  try { localStorage.setItem(SPEICHER, JSON.stringify(daten)); return ""; }
+  catch (e) {
+    return e && e.name === "QuotaExceededError"
+      ? "Die Daten sind zu gross für den Browser-Speicher. Kürze lange Texte."
+      : "Dein Browser lässt das Speichern nicht zu (privates Fenster?). Öffne die Seite in einem normalen Fenster.";
+  }
+}
+function uebernimm(roh, behalteStand) {
+  const r = validiere(roh, behalteStand);
+  if (r.fehler) return r.fehler;
+  const s = speichere(r.daten);
+  if (s) return s;
+  location.hash = "";
+  location.reload();
+  return "";
+}
+const dlg = document.getElementById("dlg");
+let dlgAusDatei = false;
+function oeffneDialog(text, ausDatei) {
+  dlgAusDatei = !!ausDatei;
+  document.getElementById("dlgErr").textContent = "";
+  document.getElementById("dlgText").value = text || "";
+  if (!dlg.open) dlg.showModal();
+  document.getElementById("dlgText").focus();
+}
+const dlgOk = () => { document.getElementById("dlgErr").textContent = uebernimm(document.getElementById("dlgText").value, dlgAusDatei); };
+document.getElementById("einfuegen").addEventListener("click", () => oeffneDialog());
+document.getElementById("dlgAbbruch").addEventListener("click", () => dlg.close());
+document.getElementById("dlgOk").addEventListener("click", dlgOk);
+document.getElementById("dlgText").addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) dlgOk(); });
+function kopierePrompt(mitDaten) {
+  const prompt = document.getElementById("chatgpt-prompt").textContent.trim();
+  const text = mitDaten && GESPEICHERT ? prompt + "\n" + JSON.stringify(GESPEICHERT) : prompt;
+  kopiere(text, mitDaten ? "Prompt mit deinen Daten kopiert. In einen neuen ChatGPT-Chat einfügen." : "Prompt kopiert. In einen neuen ChatGPT-Chat einfügen und senden.");
+}
+document.getElementById("promptBtn").addEventListener("click", () => kopierePrompt(true));
+document.getElementById("kopieren").addEventListener("click", () => kopiere(JSON.stringify(GESPEICHERT), "Daten kopiert."));
+document.getElementById("sichern").addEventListener("click", () => {
+  const a = el("a", { href: URL.createObjectURL(new Blob([JSON.stringify(GESPEICHERT, null, 1)], { type: "application/json" })), download: "projektradar-daten-" + heute() + ".json" });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast("Die Datei wird heruntergeladen.");
 });
+document.getElementById("laden").addEventListener("click", () => document.getElementById("ladeDatei").click());
+document.getElementById("ladeDatei").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  e.target.value = "";
+  f.text().then(t => oeffneDialog(t, true), () => toast("Die Datei liess sich nicht lesen."));
+});
+
+// Knöpfe je nach Betriebsart.
+const zeige = (id, an) => { document.getElementById(id).hidden = !an; };
+zeige("sammeln", MODUS === "datei");
+zeige("promptBtn", MODUS === "browser" && !!GESPEICHERT);
+zeige("einfuegen", MODUS === "browser" && !!GESPEICHERT);
+zeige("kopieren", !!GESPEICHERT);
+zeige("sichern", !!GESPEICHERT);
+zeige("laden", MODUS === "browser" && !!GESPEICHERT);
 if (DEMO) {
   document.getElementById("demoNote").hidden = false;
   document.getElementById("demoAus").addEventListener("click", e => { e.preventDefault(); location.hash = ""; location.reload(); });

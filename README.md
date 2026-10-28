@@ -2,11 +2,43 @@
 
 Alle angefangenen Projekte auf einer lokalen Startseite, sortiert nach Fortschritt. Jedes Projekt hat einen Prozentwert mit Beleg, den Fundort und einen konkreten nächsten Schritt. Oben steht, was jetzt Aufmerksamkeit braucht: ausgefallene Automationen, Code ohne Backup, verpasste Fristen.
 
-Die Seite ist am Anfang leer. [Claude Code](https://claude.com/claude-code) durchsucht deinen Rechner nach Projekten, schätzt den Stand und trägt alles ein. Alles bleibt auf deinem Rechner.
+Die Seite ist am Anfang leer. Eine KI findet deine Projekte, schätzt den Stand und trägt alles ein: entweder ChatGPT (über deinen Chatverlauf) oder [Claude Code](https://claude.com/claude-code) und Codex (über deinen Rechner). Alles bleibt auf deinem Gerät.
 
 Gut für alle, die viele Ideen anfangen und den Überblick verlieren.
 
-## Installieren
+## Zwei Wege
+
+| | Mit ChatGPT | Mit Claude Code oder Codex |
+|---|---|---|
+| Braucht | normales ChatGPT, einen Browser | ein Terminal, Claude Code oder Codex |
+| Wie die Projekte gefunden werden | Du nennst ChatGPT deine Projektordner, es wertet deinen exportierten Chatverlauf aus und fragt nach | Die KI liest deinen Rechner selbst (Code-Ordner, Notizen, Automationen) |
+| Wo die Daten liegen | im Browser (localStorage), mit Sicherung als Datei | in der Seite auf deinem Rechner |
+| Gut für | alle, die ihre Vorhaben vor allem in Chats haben | alle, die Code und Ordner voller Projekte haben |
+
+## Mit ChatGPT
+
+Kein Download, keine Installation.
+
+1. Öffne das Projektradar: <https://dinubuser.github.io/projektradar/> (oder lade `projektradar.html` herunter und öffne die Datei im Browser).
+2. Klicke auf **ChatGPT-Prompt kopieren**.
+3. Öffne in ChatGPT einen neuen Chat, füge den Prompt ein und sende ihn. ChatGPT fragt nach deinen Projektordnern und erklärt dir den Export deines Chatverlaufs.
+4. ChatGPT gibt am Ende einen Daten-Block aus. Kopiere ihn, klicke im Projektradar auf **Daten einfügen** und füge ihn ein.
+
+Was ChatGPT kann und was nicht:
+
+- Deine Projektordner («Projekte» in der Seitenleiste) kann ChatGPT nicht selbst auflisten. Du nennst sie ihm.
+- Den ganzen Verlauf durchsucht ChatGPT nur zuverlässig über den **Daten-Export** (Einstellungen → Datenkontrolle → Daten exportieren, die ZIP-Datei kommt per Mail, `conversations.json` im Chat hochladen). Ohne Export hängt es davon ab, was ChatGPT über «Chatverlauf referenzieren» abrufen kann. Die Liste ist dann wahrscheinlich unvollständig ([OpenAI: Memory in ChatGPT](https://help.openai.com/en/articles/8590148-memory-in-chatgpt)).
+- Die Prozentzahlen sind Schätzungen. Prüfe sie, bevor du dich darauf verlässt.
+
+Deine Daten bleiben in deinem Browser und werden nie an einen Server geschickt. Der Browser kann sie löschen (zum Beispiel beim Leeren der Website-Daten). Darum gibt es **Sichern als Datei** und **Aus Datei laden**. Sichere nach jeder Änderung.
+
+Aktualisieren: Klicke auf **Mit ChatGPT aktualisieren**. Der Prompt enthält dann deine bisherigen Daten, und ChatGPT fragt nur nach dem, was neu ist.
+
+## Mit Codex
+
+Codex ist der Terminal-Agent von OpenAI und liest wie Claude Code deinen Rechner. Anleitung und Installation: [chatgpt/codex/README.md](chatgpt/codex/README.md).
+
+## Installieren (Claude Code)
 
 Terminal öffnen und einfügen:
 
