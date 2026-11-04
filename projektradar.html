@@ -683,6 +683,52 @@ function findeJson(roh) {
     : "Ich finde keinen Daten-Block. Er muss mit { beginnen, mit } enden und die Liste «projekte» enthalten." };
 }
 const norm = s => String(s).trim().replace(/\s+/g, " ").toLowerCase();
+// SPERRE-LOGIK START
+// Reine Funktionen ohne Zugriff auf die Seite. Getestet mit tests/test_sperre_logik.js.
+function gueltigesDatum(s) {
+  if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const [y, m, d] = s.split("-").map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
+}
+function tageZwischen(vonStr, bisStr) {
+  const u = s => { const [y, m, d] = s.split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((u(bisStr) - u(vonStr)) / 86400000);
+}
+// Die Sperre gilt bis einschliesslich s.bis. Abgelaufen ist sie am Tag danach.
+function sperreStatus(s, heuteStr) {
+  const gesamt = s.huerden.length;
+  const erfuellt = s.huerden.filter(h => h.stand >= h.ziel).length;
+  const tage = tageZwischen(heuteStr, s.bis);
+  let zustand = "GESPERRT";
+  if (s.aktiv === false) zustand = "AUSGESCHALTEN";
+  else if (erfuellt === gesamt) zustand = "AUFGEHOBEN";
+  else if (tage < 0) zustand = "ABGELAUFEN";
+  return { zustand, tage, erfuellt, gesamt };
+}
+// Gibt { sperre } (mit Standardwerten, unbekannte Felder bleiben) oder { fehler } zurück.
+function pruefeSperre(o) {
+  const f = t => ({ fehler: "Projektsperre: " + t });
+  if (!o || typeof o !== "object" || Array.isArray(o)) return f("muss ein Objekt sein.");
+  if (o.aktiv !== undefined && typeof o.aktiv !== "boolean") return f("«aktiv» muss true oder false sein.");
+  if (!gueltigesDatum(o.bis)) return f("«bis» muss ein gültiges Datum im Format JJJJ-MM-TT sein.");
+  if (o.regel !== undefined && typeof o.regel !== "string") return f("«regel» muss Text sein.");
+  if (!Array.isArray(o.huerden) || o.huerden.length < 1 || o.huerden.length > 6) return f("es braucht 1 bis 6 Hürden.");
+  const namen = new Set();
+  for (const [i, h] of o.huerden.entries()) {
+    const w = "Hürde " + (i + 1);
+    if (!h || typeof h !== "object" || Array.isArray(h)) return f(w + " ist kein gültiger Eintrag.");
+    if (typeof h.name !== "string" || !h.name.trim()) return f(w + ": der Name fehlt.");
+    const k = h.name.trim().replace(/\s+/g, " ").toLowerCase();
+    if (namen.has(k)) return f(w + ": der Name kommt doppelt vor.");
+    namen.add(k);
+    if (!Number.isInteger(h.ziel) || h.ziel < 1) return f(w + ": «ziel» muss eine ganze Zahl ab 1 sein.");
+    if (!Number.isInteger(h.stand) || h.stand < 0) return f(w + ": «stand» muss eine ganze Zahl ab 0 sein.");
+  }
+  if (o.ausnahmen !== undefined && (!Array.isArray(o.ausnahmen) || o.ausnahmen.some(x => typeof x !== "string"))) return f("«ausnahmen» muss eine Liste von Namen sein.");
+  return { sperre: { ...o, aktiv: o.aktiv !== false, regel: o.regel || "", ausnahmen: o.ausnahmen || [] } };
+}
+// SPERRE-LOGIK ENDE
 // Nimmt Text aus ChatGPT (auch mit ```json-Zaun oder Begleittext) und gibt { daten } oder { fehler } zurück.
 // behalteStand: beim Wiederherstellen einer Sicherung den gespeicherten Stand behalten.
 function validiere(roh, behalteStand) {
