@@ -110,3 +110,7 @@ Den Installationsbefehl nochmals ausführen. Der Skill wird ersetzt, deine Seite
 ## Deinstallieren
 
 Den Ordner `~/Projektradar` und den Ordner `~/.claude/skills/projekte-sammeln` löschen.
+
+## Lizenz
+
+MIT, siehe [LICENSE](LICENSE). Du darfst das Projektradar nutzen, ändern und weitergeben, auch kommerziell. Die Lizenz muss dabei erhalten bleiben. Es kommt ohne Garantie.
