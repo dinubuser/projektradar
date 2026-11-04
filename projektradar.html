@@ -180,6 +180,35 @@ dialog textarea { width: 100%; min-height: 220px; resize: vertical; font: 13px v
 dialog textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .dlg-err { white-space: pre-line; color: var(--stop); font-size: 14px; min-height: 1.4em; margin: 8px 0 0; }
 .dlg-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; flex-wrap: wrap; }
+/* Projektsperre: Tor mit Schlüsseln */
+.gate { --gold: #f3d98b; background: linear-gradient(180deg, #14122e, #1b1640); border: 1px solid #f3d98b55; border-radius: 16px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; color: #ece9ff; }
+.gate[hidden] { display: none; }
+.gate.offen { border-color: #5fd4a066; }
+.gate.offen h2 { color: var(--ok); }
+.gate-top { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.gate h2 { font-size: 22px; color: var(--gold); }
+.gate-sub { color: #b9b3d9; font-size: 14px; margin: 2px 0 0; }
+.gate-warn { color: #ffb4a8; font-size: 14px; margin: 0; white-space: pre-line; }
+.keys { display: flex; gap: 8px; margin-left: auto; }
+.key { width: 30px; height: 30px; border-radius: 50%; border: 2px solid #4a4275; color: #4a4275; display: inline-flex; align-items: center; justify-content: center; font-size: 15px; }
+.key.on { border-color: var(--gold); color: var(--gold); box-shadow: 0 0 12px #f3d98b44; }
+.hurden { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hurde { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; background: #1a1540; border-radius: 10px; padding: 8px 12px; }
+.hurde b { font-weight: 600; overflow-wrap: anywhere; }
+.hurde .zahl { font: 600 13px var(--font-mono); color: var(--gold); }
+.hurde .xp { grid-column: 1 / -1; height: 5px; border-radius: 3px; background: #2a2260; overflow: hidden; }
+.hurde .xp i { display: block; height: 100%; background: linear-gradient(90deg, #7de3c1, var(--gold)); }
+.stepper { display: inline-flex; gap: 4px; margin-left: 8px; }
+.stepper button { width: 24px; height: 24px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); color: var(--fg); cursor: pointer; font: 600 14px/1 var(--font-body); }
+.stepper button:hover { border-color: var(--gold); }
+.stepper button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.gate-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.pill.ausnahme { color: #f3d98b; border-color: #f3d98b66; }
+.sd-felder { display: grid; gap: 10px; margin-bottom: 12px; }
+.sd-felder label, .sd-row label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.sd-felder input, .sd-row input { font: 14px var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.sd-row { display: grid; grid-template-columns: minmax(0, 1fr) 80px 80px auto; gap: 8px; align-items: end; margin-bottom: 8px; }
+@media (max-width: 560px) { .sd-row { grid-template-columns: 1fr 1fr; } .sd-row .sd-name { grid-column: 1 / -1; } .keys { margin-left: 0; } }
 </style>
 </head>
 <body>
@@ -197,12 +226,15 @@ dialog textarea:focus-visible { outline: 2px solid var(--accent); outline-offset
         <button class="link-btn" type="button" id="kopieren" hidden>Daten kopieren</button>
         <button class="link-btn" type="button" id="sichern" hidden>Sichern als Datei</button>
         <button class="link-btn" type="button" id="laden" hidden>Aus Datei laden</button>
+        <button class="link-btn" type="button" id="sperreNeu" hidden>Projektsperre einrichten</button>
         <input type="file" id="ladeDatei" accept=".json,application/json" hidden>
         <span class="demo-note" id="demoNote" hidden>Beispieldaten · <a href="#" id="demoAus">ausblenden</a></span>
       </div>
     </div>
     <div class="stats" id="stats"></div>
   </header>
+
+  <section class="gate" id="sperre" aria-labelledby="sperreH" hidden></section>
 
   <section class="dist" id="dist" aria-label="Verteilung nach Fortschritt">
     <div class="eyebrow">Verteilung nach Stufe</div>
@@ -238,6 +270,24 @@ dialog textarea:focus-visible { outline: 2px solid var(--accent); outline-offset
   <div class="dlg-actions">
     <button class="btn alt" type="button" id="dlgAbbruch">Abbrechen</button>
     <button class="btn" type="button" id="dlgOk">Übernehmen</button>
+  </div>
+</dialog>
+
+<dialog id="sperreDlg" aria-labelledby="sperreDlgH">
+  <h2 id="sperreDlgH">Projektsperre</h2>
+  <p>Eine Zeit lang keine neuen Projekte, bis deine Hürden erreicht sind. Jede Hürde braucht eine Zahl, an der du sie messen kannst. Die Sperre bleibt in diesem Browser gespeichert.</p>
+  <div class="sd-felder">
+    <label>Gilt bis <input type="date" id="sdBis"></label>
+    <label>Regel <input type="text" id="sdRegel" maxlength="200"></label>
+  </div>
+  <div class="eyebrow">Hürden (1 bis 6)</div>
+  <div id="sdRows"></div>
+  <button class="link-btn" type="button" id="sdPlus">+ Hürde</button>
+  <p class="dlg-err" id="sdErr" role="alert"></p>
+  <div class="dlg-actions">
+    <button class="link-btn" type="button" id="sdAus" hidden>Sperre entfernen</button>
+    <button class="btn alt" type="button" id="sdAbbruch">Abbrechen</button>
+    <button class="btn" type="button" id="sdOk">Speichern</button>
   </div>
 </dialog>
 
@@ -521,7 +571,8 @@ function card(p) {
     el("h3", { text: p.n }),
     el("div", { class: "meta" },
       el("span", { class: "pill " + st.cls, text: st.label }),
-      p.c ? el("span", { class: "pill cat", text: p.c }) : null
+      p.c ? el("span", { class: "pill cat", text: p.c }) : null,
+      istAusnahme(p) ? el("span", { class: "pill ausnahme", text: "Ausnahme von der Sperre" }) : null
     )
   );
   c.append(el("div", { class: "card-top" }, ring(p.p, band.color), head));
@@ -888,7 +939,137 @@ if (DEMO) {
   document.getElementById("demoAus").addEventListener("click", e => { e.preventDefault(); location.hash = ""; location.reload(); });
 }
 
+// --- Projektsperre: Tor, Hürden, Editor ---
+function sperreAuftrag(text) {
+  kopiere("Nutze den Skill projektsperre. " + text + " Datei: " + DATEI, "Auftrag kopiert. Claude Code starten und einfügen (Cmd+V).");
+}
+function aendereStand(i, diff) {
+  const h = SPERRE.huerden[i];
+  const alt = h.stand;
+  h.stand = Math.max(0, alt + diff);
+  if (h.stand === alt) return;
+  const e = speichereSperreLokal(SPERRE);
+  if (e) { h.stand = alt; toast(e); return; }
+  renderSperre();
+}
+function renderSperre() {
+  const box = document.getElementById("sperre");
+  // Eine Sperre im Datei-Block, die die Prüfung ablehnt, wird sichtbar gemeldet und nie still als «keine Sperre» behandelt.
+  const dateiFehler = (!DEMO && ECHT.sperre && !SPERRE_DATEI) ? pruefeSperre(ECHT.sperre).fehler : "";
+  document.getElementById("sperreNeu").hidden = !!SPERRE || DEMO || !!dateiFehler;
+  box.replaceChildren();
+  box.classList.remove("offen");
+  if (dateiFehler) box.append(el("p", { class: "gate-warn", role: "alert", text: "Die Projektsperre in der Datei ist ungültig: " + dateiFehler }));
+  if (!SPERRE) {
+    box.hidden = !dateiFehler;
+    if (dateiFehler) box.prepend(el("h2", { id: "sperreH", text: "Projektsperre" }));
+    return;
+  }
+  const st = sperreStatus(SPERRE, heute());
+  const offen = st.zustand !== "GESPERRT";
+  box.hidden = false;
+  box.classList.toggle("offen", offen);
+  const titel = {
+    GESPERRT: "Das Tor bleibt zu bis " + datum(SPERRE.bis),
+    AUFGEHOBEN: "Das Tor ist offen: Sperre aufgehoben",
+    ABGELAUFEN: "Das Tor ist offen: Die Sperre ist am " + datum(SPERRE.bis) + " abgelaufen",
+    AUSGESCHALTEN: "Die Projektsperre ist ausgeschaltet"
+  }[st.zustand];
+  const tageText = st.tage === 0 ? "Letzter Tag. " : (st.tage === 1 ? "Noch 1 Tag. " : "Noch " + st.tage + " Tage. ");
+  const unter = st.zustand === "GESPERRT"
+    ? tageText + st.erfuellt + " von " + st.gesamt + (st.gesamt === 1 ? " Schlüssel gefunden." : " Schlüsseln gefunden.")
+    : st.erfuellt + " von " + st.gesamt + (st.gesamt === 1 ? " Hürde erfüllt." : " Hürden erfüllt.");
+  const keys = el("div", { class: "keys", "aria-hidden": "true" });
+  SPERRE.huerden.forEach(h => keys.append(el("span", { class: "key" + (h.stand >= h.ziel ? " on" : ""), text: h.stand >= h.ziel ? "✓" : "○" })));
+  box.append(el("div", { class: "gate-top" },
+    el("div", {},
+      DEMO ? el("div", { class: "eyebrow", text: "Beispiel" }) : null,
+      el("h2", { id: "sperreH", text: titel }),
+      el("p", { class: "gate-sub", text: unter + (SPERRE.regel ? " " + SPERRE.regel : "") })),
+    keys));
+  const liste = el("ul", { class: "hurden" });
+  SPERRE.huerden.forEach((h, i) => {
+    const pct = Math.round(Math.min(h.stand, h.ziel) / h.ziel * 100);
+    const rechts = el("span", {}, el("span", { class: "zahl", text: h.stand + " / " + h.ziel }));
+    if (!DEMO && !SPERRE_IM_DATEI) {
+      const minus = el("button", { type: "button", "aria-label": h.name + ": Stand um 1 senken", text: "−" });
+      const plus = el("button", { type: "button", "aria-label": h.name + ": Stand um 1 erhöhen", text: "+" });
+      minus.addEventListener("click", () => aendereStand(i, -1));
+      plus.addEventListener("click", () => aendereStand(i, 1));
+      rechts.append(el("span", { class: "stepper" }, minus, plus));
+    }
+    liste.append(el("li", { class: "hurde" }, el("b", { text: h.name }), rechts, el("div", { class: "xp" }, el("i", { style: "width:" + pct + "%" }))));
+  });
+  box.append(liste);
+  if (!DEMO) {
+    const knopf = el("button", { class: "btn alt", type: "button", text: SPERRE_IM_DATEI ? "Stand nachführen (Auftrag kopieren)" : "Sperre bearbeiten" });
+    knopf.addEventListener("click", () => SPERRE_IM_DATEI
+      ? sperreAuftrag("Führe die Hürden der Projektsperre nach. Frag mich nach den neuen Ständen.")
+      : oeffneSperreDialog());
+    box.append(el("div", { class: "gate-actions" }, knopf));
+  }
+}
+
+const sdDlg = document.getElementById("sperreDlg");
+const sdRows = document.getElementById("sdRows");
+const PLATZHALTER = ["z. B. 3 Testnutzer haben es ausprobiert", "z. B. 100 Mailadressen gesammelt", "z. B. 10 Verkäufe"];
+function sdZeile(h, i) {
+  const name = el("input", { type: "text", maxlength: "80", "aria-label": "Name der Hürde", placeholder: PLATZHALTER[i] || "Hürde" });
+  name.value = h ? h.name : "";
+  const stand = el("input", { type: "number", min: "0", step: "1", "aria-label": "Stand" });
+  stand.value = h ? h.stand : 0;
+  const ziel = el("input", { type: "number", min: "1", step: "1", "aria-label": "Ziel" });
+  ziel.value = h ? h.ziel : "";
+  const weg = el("button", { class: "link-btn", type: "button", text: "entfernen" });
+  const row = el("div", { class: "sd-row" },
+    el("label", { class: "sd-name" }, el("span", { text: "Hürde" }), name),
+    el("label", {}, el("span", { text: "Stand" }), stand),
+    el("label", {}, el("span", { text: "Ziel" }), ziel),
+    weg);
+  weg.addEventListener("click", () => row.remove());
+  return row;
+}
+function oeffneSperreDialog() {
+  if (DEMO || SPERRE_IM_DATEI) return;
+  document.getElementById("sdErr").textContent = "";
+  const in90 = new Date(Date.now() + 90 * 86400000);
+  const vorschlag = [in90.getFullYear(), String(in90.getMonth() + 1).padStart(2, "0"), String(in90.getDate()).padStart(2, "0")].join("-");
+  document.getElementById("sdBis").value = SPERRE ? SPERRE.bis : vorschlag;
+  document.getElementById("sdRegel").value = SPERRE ? (SPERRE.regel || "") : "Keine neuen Projekte, bis die Hürden erreicht sind.";
+  sdRows.replaceChildren();
+  (SPERRE ? SPERRE.huerden : [null, null, null]).forEach((h, i) => sdRows.append(sdZeile(h, i)));
+  document.getElementById("sdAus").hidden = !SPERRE;
+  if (!sdDlg.open) sdDlg.showModal();
+}
+document.getElementById("sdPlus").addEventListener("click", () => {
+  if (sdRows.children.length >= 6) { document.getElementById("sdErr").textContent = "Mehr als 6 Hürden sind nicht möglich."; return; }
+  sdRows.append(sdZeile(null, sdRows.children.length));
+});
+document.getElementById("sdAbbruch").addEventListener("click", () => sdDlg.close());
+document.getElementById("sdAus").addEventListener("click", () => {
+  try { localStorage.removeItem(SPERRE_SPEICHER); } catch (e) {}
+  location.reload();
+});
+document.getElementById("sdOk").addEventListener("click", () => {
+  const fehler = t => { document.getElementById("sdErr").textContent = t; };
+  const huerden = [...sdRows.children].map(r => {
+    const [n, st, z] = r.querySelectorAll("input");
+    return { name: n.value.trim(), stand: st.value === "" ? 0 : Number(st.value), ziel: z.value === "" ? NaN : Number(z.value) };
+  }).filter(h => h.name);
+  const neu = { ...(SPERRE || {}), aktiv: true, bis: document.getElementById("sdBis").value, regel: document.getElementById("sdRegel").value.trim(), huerden, ausnahmen: (SPERRE && SPERRE.ausnahmen) || [] };
+  const r = pruefeSperre(neu);
+  if (r.fehler) return fehler(r.fehler);
+  if ([r.sperre.regel, ...r.sperre.huerden.map(h => h.name), ...r.sperre.ausnahmen].some(t => GEHEIM.some(re => re.test(t)))) return fehler("Projektsperre: ein Text sieht nach Passwort oder Zugangsschlüssel aus. Bitte umschreiben.");
+  const e = speichereSperreLokal(r.sperre);
+  if (e) return fehler(e);
+  location.reload();
+});
+document.getElementById("sperreNeu").addEventListener("click", () => SPERRE_IM_DATEI
+  ? sperreAuftrag("Richte eine Projektsperre ein. Führe mich im Gespräch durch Enddatum und Hürden.")
+  : oeffneSperreDialog());
+
 document.getElementById("stand").textContent = D.stand ? "Stand " + datum(D.stand) : "Noch kein Stand";
+renderSperre();
 renderStats();
 if (P.length) { renderAlert(); renderControls(); renderGroups(); } else renderLeer();
 </script>
