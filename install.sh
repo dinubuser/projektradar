@@ -24,12 +24,13 @@ fi
 echo "→ Skill für Claude Code nach $SKILLS"
 for datei in \
   projekte-sammeln/SKILL.md \
-  projekte-sammeln/radar.py
+  projekte-sammeln/radar.py \
+  projektsperre/SKILL.md
 do
   mkdir -p "$SKILLS/$(dirname "$datei")"
   lade "skills/$datei" "$SKILLS/$datei"
 done
-echo "  /projekte-sammeln installiert."
+echo "  /projekte-sammeln und /projektsperre installiert."
 command -v claude >/dev/null 2>&1 || echo "  Hinweis: Claude Code ist nicht installiert. Ohne Claude Code bleibt die Seite leer: https://claude.com/claude-code"
 
 URL="file://$SEITE"

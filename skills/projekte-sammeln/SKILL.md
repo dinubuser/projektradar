@@ -11,6 +11,7 @@ Dieser Skill füllt das Projektradar. Er findet angefangene Projekte, schätzt e
 
 - Projektradar: der Pfad aus dem Auftrag. Sonst `~/Projektradar/projektradar.html`. Fehlt sie dort, suchen: `find ~ -maxdepth 4 -name projektradar.html -not -path '*/node_modules/*' -not -path '*/.projektradar-backups/*' 2>/dev/null`. Gibt es keine, das sagen und auf die Installation hinweisen: https://github.com/dinubuser/projektradar
 - Die Daten stehen als JSON im Block `<script type="application/json" id="radar">`. Diesen Block nie von Hand bearbeiten, immer über `radar.py`.
+- Im Block kann ein Feld `sperre` stehen (Projektsperre). Es gehört dem Skill `projektsperre`. `radar.py schreibe` lässt es unverändert. Ändere es nie von Hand und lösche es nicht.
 - `radar.py` liegt im Ordner dieses Skills, normalerweise `~/.claude/skills/projekte-sammeln`. Unten heisst dieser Ordner `SKILL_DIR`.
 - Arbeitsordner für Zwischenergebnisse: der Scratchpad-Ordner der Sitzung. Gibt es keinen, `mktemp -d`. Unten heisst er `TMP`.
 

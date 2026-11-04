@@ -21,6 +21,19 @@ Befehle:
   python3 -I radar.py repariere --html <projektradar.html>
       Setzt das neueste Backup mit gueltigem JSON wieder ein.
 
+  python3 -I radar.py sperre-info --html <projektradar.html> [--json] [--heute JJJJ-MM-TT]
+      Zeigt die Projektsperre: Zustand (GESPERRT, AUFGEHOBEN, ABGELAUFEN, AUSGESCHALTEN), Resttage, Hürden.
+
+  python3 -I radar.py sperre-setze --html <projektradar.html> --neu <sperre.json>
+      Legt die Projektsperre an oder ersetzt sie. sperre.json ist das Objekt aus dem Feld "sperre"
+      (aktiv, bis, regel, huerden [name, ziel, stand], ausnahmen). Backup, atomares Schreiben und Prüfung wie bei schreibe.
+
+  python3 -I radar.py sperre-stand --html <projektradar.html> --huerde NAME --wert <Zahl|+Zahl|-Zahl>
+      Setzt den Stand einer Hürde (ohne Vorzeichen) oder ändert ihn (mit + oder -). Mit Minus: --wert=-1
+
+  python3 -I radar.py sperre-ausnahme --html <projektradar.html> --projekt NAME
+      Trägt ein Projekt als Ausnahme von der Sperre ein.
+
 Exit-Codes: 0 ok, 1 Pruefung fehlgeschlagen, 2 Aufruf oder Daten falsch.
 """
 import argparse
@@ -94,6 +107,62 @@ def pruefe_projekt(p, i):
             raise Abbruch(f"«{name}»: Feld {k} sieht nach Passwort, Token oder Schlüssel aus. Nicht ins Radar schreiben.")
 
 
+def pruefe_sperre(s):
+    """Prüft das optionale Feld sperre. Unbekannte Felder bleiben erlaubt."""
+    if not isinstance(s, dict):
+        raise Abbruch("sperre: muss ein Objekt sein")
+    if "aktiv" in s and not isinstance(s["aktiv"], bool):
+        raise Abbruch("sperre.aktiv muss true oder false sein")
+    bis = s.get("bis")
+    if not isinstance(bis, str) or not DATUM_RE.match(bis):
+        raise Abbruch(f"sperre.bis muss JJJJ-MM-TT sein, ist {bis!r}")
+    try:
+        dt.date.fromisoformat(bis)
+    except ValueError:
+        raise Abbruch(f"sperre.bis ist kein gültiges Datum: {bis!r}")
+    if "regel" in s and not isinstance(s["regel"], str):
+        raise Abbruch("sperre.regel muss Text sein")
+    h = s.get("huerden")
+    if not isinstance(h, list) or not 1 <= len(h) <= 6:
+        raise Abbruch("sperre.huerden: es braucht 1 bis 6 Hürden")
+    namen = set()
+    for i, x in enumerate(h, 1):
+        if not isinstance(x, dict):
+            raise Abbruch(f"Hürde {i}: kein Objekt")
+        name = x.get("name")
+        if not isinstance(name, str) or not name.strip():
+            raise Abbruch(f"Hürde {i}: name fehlt")
+        if schluessel(name) in namen:
+            raise Abbruch(f"Hürde «{name}»: Name doppelt")
+        namen.add(schluessel(name))
+        for feld, minimum in (("ziel", 1), ("stand", 0)):
+            w = x.get(feld)
+            if not isinstance(w, int) or isinstance(w, bool) or w < minimum:
+                raise Abbruch(f"Hürde «{name}»: {feld} muss eine ganze Zahl ab {minimum} sein, ist {w!r}")
+    ausnahmen = s.get("ausnahmen", [])
+    if not isinstance(ausnahmen, list) or not all(isinstance(a, str) for a in ausnahmen):
+        raise Abbruch("sperre.ausnahmen muss eine Liste von Namen sein")
+    texte = [s.get("regel", "")] + [x["name"] for x in h] + ausnahmen
+    if any(GEHEIM_RE.search(t) for t in texte):
+        raise Abbruch("sperre: ein Text sieht nach Passwort, Token oder Schlüssel aus. Nicht ins Radar schreiben.")
+
+
+def sperre_status(s, heute):
+    """Zustand der Sperre. Sie gilt bis einschliesslich s['bis']."""
+    gesamt = len(s["huerden"])
+    erfuellt = sum(1 for h in s["huerden"] if h["stand"] >= h["ziel"])
+    tage = (dt.date.fromisoformat(s["bis"]) - heute).days
+    if s.get("aktiv", True) is False:
+        zustand = "AUSGESCHALTEN"
+    elif erfuellt == gesamt:
+        zustand = "AUFGEHOBEN"
+    elif tage < 0:
+        zustand = "ABGELAUFEN"
+    else:
+        zustand = "GESPERRT"
+    return {"zustand": zustand, "tage": tage, "erfuellt": erfuellt, "gesamt": gesamt}
+
+
 def pruefe_alles(daten):
     if daten.get("stand") and not DATUM_RE.match(daten["stand"]):
         raise Abbruch(f"stand muss JJJJ-MM-TT sein, ist {daten['stand']!r}")
@@ -112,6 +181,8 @@ def pruefe_alles(daten):
                 raise Abbruch(f"aufmerksamkeit «{a.get('t')}»: unbekanntes Feld {k!r}")
         if GEHEIM_RE.search(str(a.get("t", "")) + " " + str(a.get("text", ""))):
             raise Abbruch(f"aufmerksamkeit «{a['t']}» sieht nach Passwort oder Token aus")
+    if "sperre" in daten:
+        pruefe_sperre(daten["sperre"])
 
 
 def als_block(daten):
@@ -139,6 +210,47 @@ def schreibe_atomar(pfad, inhalt):
         f.write(inhalt)
     shutil.copymode(pfad, tmp)
     os.replace(tmp, pfad)
+
+
+def speichere_daten(html_pfad, html, m, d):
+    """Prüft, sichert, schreibt atomar und kontrolliert. Bei Fehler kommt das Backup zurück."""
+    pruefe_alles(d)
+    neues_html = html[: m.start(2)] + als_block(d) + html[m.end(2):]
+    backup = mache_backup(html_pfad)
+    schreibe_atomar(html_pfad, neues_html)
+    try:
+        html2, m2, d2 = lies(html_pfad)
+        if d2 != d:
+            raise Abbruch("Daten nach dem Schreiben anders als geplant", 1)
+        if html2[: m2.start(2)] != html[: m.start(2)] or html2[m2.end(2):] != html[m.end(2):]:
+            raise Abbruch("Rest der HTML verändert", 1)
+        if "</" in m2.group(2):
+            raise Abbruch("</ im JSON nicht escaped", 1)
+    except Abbruch as e:
+        shutil.copy2(backup, html_pfad)
+        raise Abbruch(f"Prüfung fehlgeschlagen ({e}). Backup wieder eingesetzt: {backup}", 1)
+    return backup
+
+
+def lies_json(pfad):
+    try:
+        with open(os.path.expanduser(pfad), encoding="utf-8") as f:
+            return json.load(f)
+    except OSError as e:
+        raise Abbruch(f"{pfad} lässt sich nicht lesen ({e})")
+    except json.JSONDecodeError as e:
+        raise Abbruch(f"{pfad} ist kein gültiges JSON ({e})")
+    except UnicodeDecodeError as e:
+        raise Abbruch(f"{pfad} ist nicht UTF-8-kodiert ({e})")
+
+
+def heute_von(a):
+    if not getattr(a, "heute", None):
+        return dt.date.today()
+    try:
+        return dt.date.fromisoformat(a.heute)
+    except ValueError:
+        raise Abbruch(f"--heute muss JJJJ-MM-TT sein, ist {a.heute!r}")
 
 
 def cmd_info(a):
@@ -232,6 +344,86 @@ def cmd_schreibe(a):
     print(f"OK geschrieben. Backup: {backup}")
 
 
+def cmd_sperre_info(a):
+    _, _, d = lies(a.html)
+    s = d.get("sperre")
+    if s is None:
+        if a.json:
+            print(json.dumps({"sperre": None, "status": None}))
+        else:
+            print("Keine Projektsperre eingerichtet.")
+        return
+    pruefe_sperre(s)
+    st = sperre_status(s, heute_von(a))
+    if a.json:
+        print(json.dumps({"sperre": s, "status": st}, ensure_ascii=False, indent=1))
+        return
+    if st["zustand"] == "GESPERRT":
+        wort = "Tag" if st["tage"] == 1 else "Tage"
+        zusatz = f" bis {s['bis']} (noch {st['tage']} {wort})"
+    else:
+        zusatz = f" (bis {s['bis']})"
+    print(f"Projektsperre: {st['zustand']}{zusatz}")
+    if s.get("regel"):
+        print(f"Regel: {s['regel']}")
+    print(f"Hürden: {st['erfuellt']} von {st['gesamt']} erfüllt")
+    for h in s["huerden"]:
+        haken = "x" if h["stand"] >= h["ziel"] else " "
+        print(f"  [{haken}] {h['name']}: {h['stand']} von {h['ziel']}")
+    ausnahmen = s.get("ausnahmen", [])
+    print("Ausnahmen: " + (", ".join(ausnahmen) if ausnahmen else "(keine)"))
+
+
+def cmd_sperre_setze(a):
+    html, m, d = lies(a.html)
+    neu = lies_json(a.neu)
+    pruefe_sperre(neu)
+    d["sperre"] = neu
+    backup = speichere_daten(a.html, html, m, d)
+    print(f"OK Projektsperre gesetzt. Backup: {backup}")
+
+
+def _sperre_oder_abbruch(d):
+    s = d.get("sperre")
+    if s is None:
+        raise Abbruch("Es gibt keine Projektsperre. Zuerst sperre-setze ausführen.")
+    return s
+
+
+def cmd_sperre_stand(a):
+    html, m, d = lies(a.html)
+    s = _sperre_oder_abbruch(d)
+    gesucht = schluessel(a.huerde)
+    treffer = [h for h in s["huerden"] if schluessel(h["name"]) == gesucht]
+    if not treffer:
+        raise Abbruch(f"Keine Hürde «{a.huerde}». Vorhanden: " + ", ".join(h["name"] for h in s["huerden"]))
+    h = treffer[0]
+    wert = a.wert.strip()
+    if not re.fullmatch(r"[+-]?\d+", wert):
+        raise Abbruch(f"--wert muss eine ganze Zahl sein, optional mit + oder -, ist {a.wert!r}")
+    neu = h["stand"] + int(wert) if wert[0] in "+-" else int(wert)
+    if neu < 0:
+        raise Abbruch(f"Der Stand würde {neu}. Er darf nicht unter 0 liegen.")
+    h["stand"] = neu
+    backup = speichere_daten(a.html, html, m, d)
+    print(f"OK «{h['name']}»: {neu} von {h['ziel']}. Backup: {backup}")
+
+
+def cmd_sperre_ausnahme(a):
+    html, m, d = lies(a.html)
+    s = _sperre_oder_abbruch(d)
+    name = a.projekt.strip()
+    if not name:
+        raise Abbruch("--projekt darf nicht leer sein")
+    liste = s.setdefault("ausnahmen", [])
+    if schluessel(name) in {schluessel(x) for x in liste}:
+        print(f"«{name}» ist schon als Ausnahme eingetragen. Nichts geändert.")
+        return
+    liste.append(name)
+    backup = speichere_daten(a.html, html, m, d)
+    print(f"OK «{name}» ist Ausnahme von der Sperre. Backup: {backup}")
+
+
 def cmd_repariere(a):
     ordner = backup_ordner(a.html)
     if not os.path.isdir(ordner):
@@ -267,12 +459,34 @@ def main():
     s.add_argument("--dry-run", action="store_true")
     r = sub.add_parser("repariere")
     r.add_argument("--html", required=True)
+    si = sub.add_parser("sperre-info")
+    si.add_argument("--html", required=True)
+    si.add_argument("--json", action="store_true")
+    si.add_argument("--heute")
+    se = sub.add_parser("sperre-setze")
+    se.add_argument("--html", required=True)
+    se.add_argument("--neu", required=True)
+    sst = sub.add_parser("sperre-stand")
+    sst.add_argument("--html", required=True)
+    sst.add_argument("--huerde", required=True)
+    sst.add_argument("--wert", required=True)
+    sau = sub.add_parser("sperre-ausnahme")
+    sau.add_argument("--html", required=True)
+    sau.add_argument("--projekt", required=True)
     a = ap.parse_args()
     a.html = os.path.expanduser(a.html)
     try:
         if not os.path.isfile(a.html):
             raise Abbruch(f"{a.html} gibt es nicht")
-        {"info": cmd_info, "schreibe": cmd_schreibe, "repariere": cmd_repariere}[a.cmd](a)
+        {
+            "info": cmd_info,
+            "schreibe": cmd_schreibe,
+            "repariere": cmd_repariere,
+            "sperre-info": cmd_sperre_info,
+            "sperre-setze": cmd_sperre_setze,
+            "sperre-stand": cmd_sperre_stand,
+            "sperre-ausnahme": cmd_sperre_ausnahme,
+        }[a.cmd](a)
     except Abbruch as e:
         print("FEHLER: " + str(e), file=sys.stderr)
         sys.exit(e.code)

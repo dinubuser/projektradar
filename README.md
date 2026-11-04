@@ -79,6 +79,17 @@ Danach Claude sagen, was nicht stimmt («X ist schon live», «Y streichen»). C
 
 Später findet derselbe Knopf neuen Fortschritt und neue Projekte seit der letzten Suche.
 
+## Projektsperre
+
+Wer zu viele Projekte anfängt, kann sich eine Sperre setzen: für einen Zeitraum keine neuen Projekte, bis selbst gewählte Hürden erreicht sind. Auf der Seite erscheint oben ein Tor mit einem Schlüssel pro Hürde. Sind alle Schlüssel gefunden oder ist das Datum vorbei, öffnet sich das Tor. Die Sperre gilt bis und mit dem Enddatum. Abgelaufen ist sie am Tag danach.
+
+- **Eine Hürde braucht eine Zahl.** Zum Beispiel «100 Mailadressen gesammelt» (Ziel 100, Stand 37). Hürden ohne Zahl lassen sich nicht abhaken.
+- **Im Browser (ChatGPT-Weg):** Klicke auf **Projektsperre einrichten**, wähle Enddatum und Hürden. Mit `+` und `−` führst du den Stand nach. Die Sperre bleibt in diesem Browser gespeichert und ist Teil von «Daten kopieren» und «Sichern als Datei». Öffnest du die Seite als Datei, kann sie sich nicht selbst speichern. Dort kopiert **Auftrag kopieren** einen Auftrag, den du in Claude Code einfügst.
+- **Mit Claude Code:** Das Installationsskript legt zusätzlich den Skill `/projektsperre` an. Er führt dich im Gespräch durch das Einrichten, führt die Stände nach und fragt, bevor ein neues Projekt angelegt wird: «Die Sperre läuft bis …, trotzdem anlegen?» Bei Ja wird das Projekt als Ausnahme markiert. Die Sperre blockiert nie, sie fragt nur. Du entscheidest. Für einen negativen Stand schreibst du `--wert=-1` mit Gleichheitszeichen.
+- **Ein Hinweis:** Skills springen nicht immer von selbst an. `/projektsperre` bietet beim Einrichten an, eine Zeile in deine globale `~/.claude/CLAUDE.md` zu schreiben, damit Claude vor jedem neuen Projekt nachprüft. Das passiert nur, wenn du Ja sagst.
+
+Die Sperre steht im selben Daten-Block wie deine Projekte (Feld `sperre`) und ändert nichts an bestehenden Radaren, die keine haben.
+
 ## Mit dem nächsten Schritt arbeiten
 
 Ein Klick auf **Nächster Schritt** einer Karte kopiert einen fertigen Auftrag mit Projektname, Schritt und Ordner. In Claude Code einfügen, und Claude legt im richtigen Projekt los. Am Ende führt Claude den Eintrag im Radar nach (Prozent, nächster Schritt, Datum).
