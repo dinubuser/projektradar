@@ -3,10 +3,320 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="0; url=projektradar.html">
 <title>Projektradar</title>
+<meta name="description" content="Alle angefangenen Projekte auf einer Seite, sortiert nach Fortschritt, mit Prozent, Beleg und nächstem Schritt. Kostenlos, läuft lokal, ohne Konto.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0d14">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b0d14;
+  --panel: #12151f;
+  --panel-2: #181c29;
+  --line: #2c3248;
+  --fg: #e7e9f2;
+  --muted: #a3a9be;
+  --accent: #9aa8ff;
+  --accent-2: #c7b2ff;
+  --ok: #5fd4a0;
+  --pause: #f0b45a;
+  --font-display: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  background-image: radial-gradient(900px 420px at 80% -80px, #171d36 0%, transparent 70%);
+  background-repeat: no-repeat;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.6;
+  overflow-wrap: break-word;
+}
+.wrap { width: 100%; max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+section { padding: 56px 0 0; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 7.5vw, 3.4rem); font-weight: 800; letter-spacing: -.02em; }
+h2 { font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 700; letter-spacing: -.01em; margin-bottom: 14px; }
+h3 { font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; }
+p { margin: 0 0 14px; max-width: 64ch; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:hover { color: var(--accent-2); }
+code { font-family: var(--font-mono); font-size: .88em; }
+:focus-visible { outline: 3px solid var(--accent-2); outline-offset: 3px; border-radius: 6px; }
+.lead { font-size: 1.15rem; color: var(--muted); max-width: 52ch; }
+
+header.top { padding: 20px 0 0; }
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 10px; color: var(--fg); text-decoration: none; min-height: 44px; }
+.dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--accent); position: relative; flex: none; }
+.dot::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--accent-2); }
+
+.hero { padding-top: 32px; display: grid; gap: 32px; }
+.hero h1 { margin-bottom: 18px; }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 0 22px; border-radius: 12px;
+  font: 600 1rem var(--font-body); text-decoration: none; cursor: pointer;
+  border: 1px solid var(--line); background: var(--panel-2); color: var(--fg);
+}
+.btn:hover { border-color: var(--accent); color: var(--fg); }
+.btn.primary { background: var(--accent); color: #0b0d14; border-color: var(--accent); }
+.btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #0b0d14; }
+
+.preview { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; }
+.preview-note { font-size: .85rem; color: var(--muted); margin: 14px 0 0; max-width: none; }
+.rows { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.row-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.row-name { font-weight: 600; }
+.row-pct { font-family: var(--font-mono); font-size: .95rem; color: var(--accent); }
+.bar { height: 8px; border-radius: 99px; background: #1e2335; margin: 8px 0; overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.row-meta { font-size: .88rem; color: var(--muted); margin: 0; max-width: none; }
+.row-meta b { color: var(--fg); font-weight: 600; }
+
+.gate-grid { display: grid; gap: 28px; margin-top: 8px; }
+.gate { border: 1px solid #f3d98b55; background: linear-gradient(180deg, #14122e, #1b1640); border-radius: 16px; padding: 20px; color: #ece9ff; }
+.gate h3 { color: #f3d98b; }
+.keys { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 12px; }
+.keys li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; font-size: .95rem; }
+.key { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #f3d98b; margin-top: 3px; }
+.key.found { background: #f3d98b; }
+.keys small { display: block; color: #cfc9ee; font-family: var(--font-mono); font-size: .8rem; }
+.facts { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.facts li { padding-left: 16px; border-left: 3px solid var(--line); max-width: 60ch; }
+
+.ways { display: grid; gap: 16px; margin-top: 8px; }
+.way { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px 20px; display: flex; flex-direction: column; }
+.way p { color: var(--muted); }
+.way > .btn { align-self: flex-start; margin-top: auto; }
+.tag { align-self: flex-start; font-size: .85rem; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: #2a2414; color: var(--pause); border: 1px solid #5a4a22; margin-bottom: 12px; }
+.tag.ok { background: #12281f; color: var(--ok); border-color: #24503d; }
+.cmd { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 0; }
+.cmd code { display: block; background: #0b0d14; border: 1px solid var(--line); border-radius: 10px; padding: 12px; font-size: .8rem; line-height: 1.5; color: var(--fg); word-break: break-all; }
+.cmd .btn { align-self: flex-start; }
+.status { min-height: 1.4em; font-size: .9rem; color: var(--ok); margin: 0; }
+
+.two { display: grid; gap: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px 20px; }
+.card ul { margin: 0; padding-left: 20px; }
+.card li { margin-bottom: 8px; max-width: 60ch; }
+.card p:last-child { margin-bottom: 0; }
+
+footer { margin-top: 64px; padding: 28px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: .95rem; }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center; }
+footer a { display: inline-flex; align-items: center; min-height: 44px; }
+
+@media (min-width: 720px) {
+  body { font-size: 18px; }
+  .wrap { padding: 0 24px; }
+  section { padding-top: 88px; }
+  .gate-grid { grid-template-columns: 1fr 1fr; align-items: start; gap: 40px; }
+  .ways { grid-template-columns: repeat(3, 1fr); }
+  .two { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 960px) {
+  .hero { grid-template-columns: 1.1fr 1fr; align-items: center; gap: 56px; padding-top: 56px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  * { transition: none !important; animation: none !important; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .bar i { transform-origin: left; animation: fill .9s ease-out both; }
+  @keyframes fill { from { transform: scaleX(0); } }
+}
+</style>
 </head>
-<body style="background:#0b0d14;color:#e7e9f2;font-family:system-ui,sans-serif;padding:24px">
-<p><a href="projektradar.html" style="color:#9aa8ff">Weiter zum Projektradar</a></p>
+<body>
+<header class="top">
+  <div class="wrap"><a class="brand" href="#top"><span class="dot" aria-hidden="true"></span>Projektradar</a></div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <div class="hero">
+      <div>
+        <h1>Alle angefangenen Projekte auf einer Seite</h1>
+        <p class="lead">Sortiert nach Fortschritt, mit Prozent, Beleg und nächstem Schritt. Eine einzelne Datei, die auf deinem Gerät bleibt.</p>
+        <div class="btns">
+          <a class="btn primary" href="projektradar.html#beispiel">Demo ansehen</a>
+          <a class="btn" href="#wege">Selbst ausprobieren</a>
+        </div>
+      </div>
+      <div class="preview" role="img" aria-label="Vorschau mit drei erfundenen Projekten: Hochbeet bauen 80 Prozent, Familienkalender digital 45 Prozent, Fotobuch Sommer 15 Prozent, jeweils mit Beleg und nächstem Schritt">
+        <ul class="rows" aria-hidden="true">
+          <li>
+            <div class="row-top"><span class="row-name">Hochbeet bauen</span><span class="row-pct">80 %</span></div>
+            <div class="bar"><i style="width:80%"></i></div>
+            <p class="row-meta"><b>Beleg:</b> Bretter zugeschnitten, Foto im Ordner<br><b>Nächster Schritt:</b> Erde bestellen</p>
+          </li>
+          <li>
+            <div class="row-top"><span class="row-name">Familienkalender digital</span><span class="row-pct">45 %</span></div>
+            <div class="bar"><i style="width:45%"></i></div>
+            <p class="row-meta"><b>Beleg:</b> Vorlage mit 12 Terminen angelegt<br><b>Nächster Schritt:</b> Geburtstage eintragen</p>
+          </li>
+          <li>
+            <div class="row-top"><span class="row-name">Fotobuch Sommer</span><span class="row-pct">15 %</span></div>
+            <div class="bar"><i style="width:15%"></i></div>
+            <p class="row-meta"><b>Beleg:</b> Bilder ausgewählt<br><b>Nächster Schritt:</b> Layout wählen</p>
+          </li>
+        </ul>
+        <p class="preview-note">Erfundene Beispieldaten.</p>
+      </div>
+    </div>
+  </div>
+
+  <section id="sperre" aria-labelledby="h-sperre">
+    <div class="wrap">
+      <h2 id="h-sperre">Die Projektsperre</h2>
+      <p class="lead">Wer zu viele Projekte anfängt, kann sich selbst eine Pause verordnen. Für einen Zeitraum keine neuen Projekte, bis die gewählten Hürden erreicht sind.</p>
+      <div class="gate-grid">
+        <div class="gate">
+          <h3>Tor geschlossen bis 30.11.</h3>
+          <p style="margin:0;color:#cfc9ee">Erfundenes Beispiel mit zwei Hürden.</p>
+          <ul class="keys">
+            <li><span class="key found" aria-hidden="true"></span><span>Hochbeet fertig<small>1 von 1, Schlüssel gefunden</small></span></li>
+            <li><span class="key" aria-hidden="true"></span><span>100 Mailadressen gesammelt<small>37 von 100</small></span></li>
+          </ul>
+        </div>
+        <ul class="facts">
+          <li><strong>Ein Tor, Schlüssel als Hürden.</strong> Du legst bis zu 6 Hürden fest. Jede braucht eine Zahl, zum Beispiel Ziel 100, Stand 37. Hürden ohne Zahl lassen sich nicht abhaken.</li>
+          <li><strong>Ein Enddatum.</strong> Sind alle Schlüssel gefunden oder ist das Datum vorbei, öffnet sich das Tor. Die Sperre gilt bis und mit dem Enddatum.</li>
+          <li><strong>Sie blockiert nie.</strong> Mit Claude Code fragt sie nur nach, bevor ein neues Projekt angelegt wird: «Die Sperre läuft bis …, trotzdem anlegen?» Bei Ja wird das Projekt als Ausnahme markiert. Du entscheidest.</li>
+          <li><strong>Ehrlich dazu:</strong> Die Sperre ist eine Erinnerung an dich selbst, kein Schloss. Skills springen nicht immer von selbst an. Darum bietet <code>/projektsperre</code> an, eine Zeile in deine globale <code>CLAUDE.md</code> zu schreiben, aber nur, wenn du Ja sagst.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="wege" aria-labelledby="h-wege">
+    <div class="wrap">
+      <h2 id="h-wege">Drei Wege, es auszuprobieren</h2>
+      <div class="ways">
+        <article class="way">
+          <span class="tag ok">Ohne Installation</span>
+          <h3>ChatGPT</h3>
+          <p>Öffne das Projektradar im Browser und klicke auf «ChatGPT-Prompt kopieren». Füge den Prompt in ChatGPT im Modus Work ein. ChatGPT fragt nach deinen Projektordnern und füllt die Seite.</p>
+          <a class="btn" href="projektradar.html">Projektradar öffnen</a>
+        </article>
+        <article class="way">
+          <span class="tag ok">Mac, Claude Code</span>
+          <h3>Claude Code</h3>
+          <p>Ein Befehl im Terminal. Claude liest deine Code-Ordner, Notizen und Automationen und trägt die Projekte selbst ein.</p>
+          <div class="cmd">
+            <code id="cmd-text">curl -fsSL https://raw.githubusercontent.com/dinubuser/projektradar/main/install.sh | bash</code>
+            <button class="btn" type="button" id="copy-btn">Befehl kopieren</button>
+            <p class="status" id="copy-status" role="status" aria-live="polite"></p>
+          </div>
+        </article>
+        <article class="way">
+          <span class="tag">In Vorbereitung</span>
+          <h3>Obsidian-Plugin</h3>
+          <p>Das Projektradar als Reiter direkt in Obsidian. Das Plugin ist noch nicht veröffentlicht. Darum gibt es dafür weder einen Link noch einen Installationsbefehl.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="datenschutz" aria-labelledby="h-datenschutz">
+    <div class="wrap">
+      <h2 id="h-datenschutz">Datenschutz</h2>
+      <div class="two">
+        <div class="card">
+          <h3>Alles bleibt auf deinem Gerät</h3>
+          <p>Das Projektradar schickt nichts an einen Server und braucht kein Konto. Beim ChatGPT-Weg liegen die Daten im Browser, beim Claude-Code-Weg in der Datei selbst.</p>
+        </div>
+        <div class="card">
+          <h3>Zwei Dinge, die du wissen musst</h3>
+          <ul>
+            <li>Die Prozentzahlen sind Schätzungen. Prüfe sie, bevor du dich darauf verlässt.</li>
+            <li>Deine Datei enthält Ordnerpfade und Projektnamen. Gib sie nicht weiter.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="grenzen" aria-labelledby="h-grenzen">
+    <div class="wrap">
+      <h2 id="h-grenzen">Was getestet ist und was nicht</h2>
+      <div class="card">
+        <p>Das hier ist ein erster Stand. Ich sage dir lieber, was fehlt.</p>
+        <ul>
+          <li>Die Installation habe ich auf einem Mac in einem leeren Test-Home geprüft.</li>
+          <li>Nicht getestet: Windows, Linux, Safari und iOS.</li>
+          <li>Noch keine fremde Person hat es ausprobiert. Wenn du es tust, sag mir, wo es hakt.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>von Dinu</span>
+    <a href="https://github.com/dinubuser/projektradar">Quellcode auf GitHub</a>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var btn = document.getElementById("copy-btn");
+  var status = document.getElementById("copy-status");
+  var codeEl = document.getElementById("cmd-text");
+  if (!btn || !status || !codeEl) return;
+
+  function fallback(text) {
+    var ok = false;
+    try {
+      var ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (e) { ok = false; }
+    return ok;
+  }
+  function selectCode() {
+    try {
+      var r = document.createRange();
+      r.selectNodeContents(codeEl);
+      var s = window.getSelection();
+      s.removeAllRanges();
+      s.addRange(r);
+    } catch (e) { /* Auswahl ist nur ein Hilfsmittel */ }
+  }
+  function done(ok) {
+    if (ok) {
+      status.textContent = "Kopiert.";
+    } else {
+      selectCode();
+      status.textContent = "Kopieren nicht möglich. Der Befehl ist markiert, kopiere ihn von Hand.";
+      status.style.color = "var(--pause)";
+    }
+    setTimeout(function () { status.textContent = ""; status.style.color = ""; }, 4000);
+  }
+
+  btn.addEventListener("click", function () {
+    var text = codeEl.textContent.trim();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(fallback(text)); });
+        return;
+      }
+    } catch (e) { /* weiter mit Fallback */ }
+    done(fallback(text));
+  });
+})();
+</script>
 </body>
 </html>

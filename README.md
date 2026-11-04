@@ -19,7 +19,7 @@ Gut für alle, die viele Ideen anfangen und den Überblick verlieren.
 
 Kein Download, keine Installation.
 
-1. Öffne das Projektradar: <https://dinubuser.github.io/projektradar/> (oder lade `projektradar.html` herunter und öffne die Datei im Browser).
+1. Öffne das Projektradar: <https://dinubuser.github.io/projektradar/projektradar.html> (oder lade `projektradar.html` herunter und öffne die Datei im Browser).
 2. Klicke auf **ChatGPT-Prompt kopieren**.
 3. Wechsle in ChatGPT oben auf **Work** und öffne dort einen neuen Chat. Füge den Prompt ein und sende ihn. ChatGPT holt sich die Vorlage selbst und baut keine eigene Seite. Es bittet dich um einen Screenshot der Seitenleiste mit deinen Projektordnern. Das ist der schnellste Weg. Danach sucht es selbst nach weiteren Projekten in deinem Chatverlauf. Kann es die Vorlage nicht holen, sagt es dir, wie du sie über **Vorlage herunterladen** anhängst.
 4. Am Ende fragt ChatGPT, wie du das Ergebnis möchtest:
@@ -110,3 +110,7 @@ Den Installationsbefehl nochmals ausführen. Der Skill wird ersetzt, deine Seite
 ## Deinstallieren
 
 Den Ordner `~/Projektradar` und den Ordner `~/.claude/skills/projekte-sammeln` löschen.
+
+## Lizenz
+
+MIT, siehe [LICENSE](LICENSE). Du darfst das Projektradar nutzen, ändern und weitergeben, auch kommerziell. Die Lizenz muss dabei erhalten bleiben. Es kommt ohne Garantie.
