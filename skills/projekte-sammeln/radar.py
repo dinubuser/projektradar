@@ -240,6 +240,8 @@ def lies_json(pfad):
         raise Abbruch(f"{pfad} lässt sich nicht lesen ({e})")
     except json.JSONDecodeError as e:
         raise Abbruch(f"{pfad} ist kein gültiges JSON ({e})")
+    except UnicodeDecodeError as e:
+        raise Abbruch(f"{pfad} ist nicht UTF-8-kodiert ({e})")
 
 
 def heute_von(a):
@@ -346,7 +348,10 @@ def cmd_sperre_info(a):
     _, _, d = lies(a.html)
     s = d.get("sperre")
     if s is None:
-        print("Keine Projektsperre eingerichtet.")
+        if a.json:
+            print(json.dumps({"sperre": None, "status": None}))
+        else:
+            print("Keine Projektsperre eingerichtet.")
         return
     pruefe_sperre(s)
     st = sperre_status(s, heute_von(a))
@@ -376,6 +381,47 @@ def cmd_sperre_setze(a):
     d["sperre"] = neu
     backup = speichere_daten(a.html, html, m, d)
     print(f"OK Projektsperre gesetzt. Backup: {backup}")
+
+
+def _sperre_oder_abbruch(d):
+    s = d.get("sperre")
+    if s is None:
+        raise Abbruch("Es gibt keine Projektsperre. Zuerst sperre-setze ausführen.")
+    return s
+
+
+def cmd_sperre_stand(a):
+    html, m, d = lies(a.html)
+    s = _sperre_oder_abbruch(d)
+    gesucht = schluessel(a.huerde)
+    treffer = [h for h in s["huerden"] if schluessel(h["name"]) == gesucht]
+    if not treffer:
+        raise Abbruch(f"Keine Hürde «{a.huerde}». Vorhanden: " + ", ".join(h["name"] for h in s["huerden"]))
+    h = treffer[0]
+    wert = a.wert.strip()
+    if not re.fullmatch(r"[+-]?\d+", wert):
+        raise Abbruch(f"--wert muss eine ganze Zahl sein, optional mit + oder -, ist {a.wert!r}")
+    neu = h["stand"] + int(wert) if wert[0] in "+-" else int(wert)
+    if neu < 0:
+        raise Abbruch(f"Der Stand würde {neu}. Er darf nicht unter 0 liegen.")
+    h["stand"] = neu
+    backup = speichere_daten(a.html, html, m, d)
+    print(f"OK «{h['name']}»: {neu} von {h['ziel']}. Backup: {backup}")
+
+
+def cmd_sperre_ausnahme(a):
+    html, m, d = lies(a.html)
+    s = _sperre_oder_abbruch(d)
+    name = a.projekt.strip()
+    if not name:
+        raise Abbruch("--projekt darf nicht leer sein")
+    liste = s.setdefault("ausnahmen", [])
+    if schluessel(name) in {schluessel(x) for x in liste}:
+        print(f"«{name}» ist schon als Ausnahme eingetragen. Nichts geändert.")
+        return
+    liste.append(name)
+    backup = speichere_daten(a.html, html, m, d)
+    print(f"OK «{name}» ist Ausnahme von der Sperre. Backup: {backup}")
 
 
 def cmd_repariere(a):
@@ -420,6 +466,13 @@ def main():
     se = sub.add_parser("sperre-setze")
     se.add_argument("--html", required=True)
     se.add_argument("--neu", required=True)
+    sst = sub.add_parser("sperre-stand")
+    sst.add_argument("--html", required=True)
+    sst.add_argument("--huerde", required=True)
+    sst.add_argument("--wert", required=True)
+    sau = sub.add_parser("sperre-ausnahme")
+    sau.add_argument("--html", required=True)
+    sau.add_argument("--projekt", required=True)
     a = ap.parse_args()
     a.html = os.path.expanduser(a.html)
     try:
@@ -431,6 +484,8 @@ def main():
             "repariere": cmd_repariere,
             "sperre-info": cmd_sperre_info,
             "sperre-setze": cmd_sperre_setze,
+            "sperre-stand": cmd_sperre_stand,
+            "sperre-ausnahme": cmd_sperre_ausnahme,
         }[a.cmd](a)
     except Abbruch as e:
         print("FEHLER: " + str(e), file=sys.stderr)

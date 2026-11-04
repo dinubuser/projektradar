@@ -98,6 +98,115 @@ class SperreTest(unittest.TestCase):
                 self.assertIn("FEHLER", err)
                 self.assertEqual(self.inhalt(), vorher)
 
+    def stand_von(self, i):
+        return self.lies_alles()["sperre"]["huerden"][i]["stand"]
+
+    def test_stand_relativ_und_absolut(self):
+        self.setze(GUT)
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "zweite hürde", "--wert", "+2")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.stand_von(1), 3)
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "Zweite Hürde", "--wert", "10")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.stand_von(1), 10)
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "Zweite Hürde", "--wert=-20")
+        self.assertEqual(code, 2, err)
+        self.assertEqual(self.stand_von(1), 10)
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "Zweite Hürde", "--wert=-4")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.stand_von(1), 6)
+
+    def test_stand_unbekannte_huerde_nennt_die_vorhandenen(self):
+        self.setze(GUT)
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "Gibt es nicht", "--wert", "1")
+        self.assertEqual(code, 2)
+        self.assertIn("Erste Hürde", err)
+        self.assertIn("Zweite Hürde", err)
+
+    def test_stand_ohne_sperre(self):
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "A", "--wert", "1")
+        self.assertEqual(code, 2)
+        self.assertIn("keine Projektsperre", err)
+
+    def test_stand_keine_zahl(self):
+        self.setze(GUT)
+        code, _, err = self.lauf("sperre-stand", "--html", self.html, "--huerde", "Erste Hürde", "--wert", "viel")
+        self.assertEqual(code, 2)
+
+    def test_alle_erfuellt_hebt_auf(self):
+        self.setze(GUT)
+        self.lauf("sperre-stand", "--html", self.html, "--huerde", "Erste Hürde", "--wert", "5")
+        self.lauf("sperre-stand", "--html", self.html, "--huerde", "Zweite Hürde", "--wert", "30")
+        code, out, err = self.lauf("sperre-info", "--html", self.html, "--heute", "2026-11-03")
+        self.assertEqual(code, 0, err)
+        self.assertIn("AUFGEHOBEN", out)
+
+    def test_letzter_tag_gilt_noch_danach_abgelaufen(self):
+        self.setze(GUT)
+        _, out, _ = self.lauf("sperre-info", "--html", self.html, "--heute", "2027-01-31")
+        self.assertIn("GESPERRT", out)
+        self.assertIn("noch 0 Tage", out)
+        _, out, _ = self.lauf("sperre-info", "--html", self.html, "--heute", "2027-02-01")
+        self.assertIn("ABGELAUFEN", out)
+
+    def test_ausgeschaltet(self):
+        self.setze({**GUT, "aktiv": False})
+        _, out, _ = self.lauf("sperre-info", "--html", self.html, "--heute", "2026-11-03")
+        self.assertIn("AUSGESCHALTEN", out)
+
+    def test_ausnahme_nur_einmal(self):
+        self.setze(GUT)
+        code, _, err = self.lauf("sperre-ausnahme", "--html", self.html, "--projekt", "Neues Ding")
+        self.assertEqual(code, 0, err)
+        code, out, err = self.lauf("sperre-ausnahme", "--html", self.html, "--projekt", " neues ding ")
+        self.assertEqual(code, 0, err)
+        self.assertIn("schon als Ausnahme", out)
+        self.assertEqual(self.lies_alles()["sperre"]["ausnahmen"], ["Neues Ding"])
+
+    def test_ausnahme_ohne_name_oder_ohne_sperre(self):
+        code, _, err = self.lauf("sperre-ausnahme", "--html", self.html, "--projekt", "X")
+        self.assertEqual(code, 2)
+        self.setze(GUT)
+        code, _, err = self.lauf("sperre-ausnahme", "--html", self.html, "--projekt", "  ")
+        self.assertEqual(code, 2)
+
+    def test_projekte_und_unbekannte_felder_bleiben(self):
+        code, _, err = self.lauf("schreibe", "--html", self.html, "--neu", self.json_datei([PROJEKT], "projekte.json"))
+        self.assertEqual(code, 0, err)
+        self.setze({**GUT, "notiz": "bleibt"})
+        self.lauf("sperre-stand", "--html", self.html, "--huerde", "Erste Hürde", "--wert", "+1")
+        alles = self.lies_alles()
+        self.assertEqual([p["n"] for p in alles["projekte"]], ["Testprojekt"])
+        self.assertEqual(alles["sperre"]["notiz"], "bleibt")
+        self.assertEqual(alles["sperre"]["huerden"][0]["stand"], 1)
+
+    def test_schreibe_laesst_die_sperre_unveraendert(self):
+        self.setze(GUT)
+        vorher = self.lies_alles()["sperre"]
+        code, _, err = self.lauf("schreibe", "--html", self.html, "--neu", self.json_datei([PROJEKT], "projekte.json"))
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.lies_alles()["sperre"], vorher)
+
+    def test_info_json_hat_status(self):
+        self.setze(GUT)
+        code, out, err = self.lauf("sperre-info", "--html", self.html, "--json", "--heute", "2026-11-03")
+        self.assertEqual(code, 0, err)
+        daten = json.loads(out)
+        self.assertEqual(daten["status"], {"zustand": "GESPERRT", "tage": 89, "erfuellt": 0, "gesamt": 2})
+
+    def test_info_json_ohne_sperre(self):
+        code, out, err = self.lauf("sperre-info", "--html", self.html, "--json")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(json.loads(out), {"sperre": None, "status": None})
+
+    def test_setze_nicht_utf8_datei(self):
+        pfad = os.path.join(self.tmp, "kaputt.json")
+        with open(pfad, "wb") as f:
+            f.write(b"\xff\xfe")
+        code, _, err = self.lauf("sperre-setze", "--html", self.html, "--neu", pfad)
+        self.assertEqual(code, 2)
+        self.assertIn("FEHLER", err)
+
 
 if __name__ == "__main__":
     unittest.main()
