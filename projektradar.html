@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 /* Layout: Kopf mit Gesamtbild und Verteilungsbalken, dann Filterleiste, dann Projekte gruppiert nach Fortschritts-Stufe als Kartenraster. Bewusst nur dunkel. */
 :root {
   color-scheme: dark;
@@ -234,6 +235,7 @@ dialog textarea:focus-visible { outline: 2px solid var(--accent); outline-offset
     <div class="stats" id="stats"></div>
   </header>
 
+  <div class="sr-only" id="sperreLive" role="status" aria-live="polite"></div>
   <section class="gate" id="sperre" aria-labelledby="sperreH" hidden></section>
 
   <section class="dist" id="dist" aria-label="Verteilung nach Fortschritt">
@@ -951,6 +953,10 @@ function aendereStand(i, diff) {
   const e = speichereSperreLokal(SPERRE);
   if (e) { h.stand = alt; toast(e); return; }
   renderSperre();
+  // renderSperre baut den Knopf neu: Fokus auf den gleichen Knopf der gleichen Hürde zurückgeben und die Änderung ansagen.
+  const knoepfe = document.querySelectorAll("#sperre .hurde")[i]?.querySelectorAll(".stepper button");
+  if (knoepfe && knoepfe.length === 2) knoepfe[diff > 0 ? 1 : 0].focus();
+  document.getElementById("sperreLive").textContent = h.name + ": " + h.stand + " von " + h.ziel;
 }
 function renderSperre() {
   const box = document.getElementById("sperre");
@@ -1026,12 +1032,17 @@ function sdZeile(h, i) {
     el("label", {}, el("span", { text: "Stand" }), stand),
     el("label", {}, el("span", { text: "Ziel" }), ziel),
     weg);
-  weg.addEventListener("click", () => row.remove());
+  weg.addEventListener("click", () => { row.remove(); sdFehler(""); sdAusReset(); });
   return row;
 }
+function sdFehler(t) { document.getElementById("sdErr").textContent = t; }
+const sdAusKnopf = document.getElementById("sdAus");
+function sdAusReset() { sdAusKnopf.textContent = "Sperre entfernen"; sdAusKnopf.dataset.scharf = ""; }
+sdDlg.addEventListener("close", sdAusReset);
 function oeffneSperreDialog() {
   if (DEMO || SPERRE_IM_DATEI) return;
-  document.getElementById("sdErr").textContent = "";
+  sdFehler("");
+  sdAusReset();
   const in90 = new Date(Date.now() + 90 * 86400000);
   const vorschlag = [in90.getFullYear(), String(in90.getMonth() + 1).padStart(2, "0"), String(in90.getDate()).padStart(2, "0")].join("-");
   document.getElementById("sdBis").value = SPERRE ? SPERRE.bis : vorschlag;
@@ -1042,16 +1053,22 @@ function oeffneSperreDialog() {
   if (!sdDlg.open) sdDlg.showModal();
 }
 document.getElementById("sdPlus").addEventListener("click", () => {
-  if (sdRows.children.length >= 6) { document.getElementById("sdErr").textContent = "Mehr als 6 Hürden sind nicht möglich."; return; }
-  sdRows.append(sdZeile(null, sdRows.children.length));
+  sdAusReset();
+  if (sdRows.children.length >= 6) { sdFehler("Mehr als 6 Hürden sind nicht möglich."); return; }
+  sdFehler("");
+  const neu = sdZeile(null, sdRows.children.length);
+  sdRows.append(neu);
+  neu.querySelector("input").focus();
 });
-document.getElementById("sdAbbruch").addEventListener("click", () => sdDlg.close());
-document.getElementById("sdAus").addEventListener("click", () => {
-  try { localStorage.removeItem(SPERRE_SPEICHER); } catch (e) {}
+document.getElementById("sdAbbruch").addEventListener("click", () => { sdAusReset(); sdDlg.close(); });
+sdAusKnopf.addEventListener("click", () => {
+  if (!sdAusKnopf.dataset.scharf) { sdAusKnopf.dataset.scharf = "1"; sdAusKnopf.textContent = "Wirklich entfernen?"; return; }
+  try { localStorage.removeItem(SPERRE_SPEICHER); } catch (e) { sdAusReset(); return sdFehler("Die Sperre konnte nicht entfernt werden: " + (e && e.message ? e.message : "Browser-Speicher nicht erreichbar.")); }
   location.reload();
 });
 document.getElementById("sdOk").addEventListener("click", () => {
-  const fehler = t => { document.getElementById("sdErr").textContent = t; };
+  sdAusReset();
+  const fehler = sdFehler;
   const huerden = [...sdRows.children].map(r => {
     const [n, st, z] = r.querySelectorAll("input");
     return { name: n.value.trim(), stand: st.value === "" ? 0 : Number(st.value), ziel: z.value === "" ? NaN : Number(z.value) };
