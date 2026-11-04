@@ -411,10 +411,16 @@ function ladeSperreLokal() {
   catch (e) { return null; }
 }
 const SPERRE_DATEI = (ECHT.sperre && pruefeSperre(ECHT.sperre).sperre) || null;
-let SPERRE = DEMO ? BEISPIEL.sperre : (SPERRE_DATEI || ladeSperreLokal());
+// Der Browser-Speicher zählt nur im Browser-Betrieb. Im Datei-Betrieb gilt allein der Block in der Datei.
+let SPERRE = DEMO ? BEISPIEL.sperre : (SPERRE_DATEI || (MODUS === "browser" ? ladeSperreLokal() : null));
 // Im Datei-Betrieb kann die Seite sich nicht selbst speichern. Änderungen laufen dann über den Skill projektsperre.
 const SPERRE_IM_DATEI = MODUS === "datei" || !!SPERRE_DATEI;
-const mitSperre = d => (d && SPERRE && !DEMO) ? { ...d, sperre: SPERRE } : d;
+const mitSperre = d => {
+  if (!d) return d;
+  if (SPERRE && !DEMO) return { ...d, sperre: SPERRE };
+  const { sperre, ...ohne } = d; // eine rohe oder ungültige Sperre aus der Datei nie exportieren
+  return ohne;
+};
 const istAusnahme = p => !!SPERRE && (SPERRE.ausnahmen || []).some(a => norm(a) === norm(p.n));
 
 const BANDS = [
@@ -812,12 +818,23 @@ function speichereSperreLokal(s) {
 function uebernimm(roh, behalteStand) {
   const r = validiere(roh, behalteStand);
   if (r.fehler) return r.fehler;
-  const s = speichere(r.daten);
-  if (s) return s;
+  // Sperre zuerst speichern: scheitert sie, bleiben die Projekte unberührt.
   // Fehlt «sperre» im eingefügten Block, bleibt die vorhandene Sperre unberührt.
+  let altSperre = null;
   if (r.sperre) {
+    try { altSperre = localStorage.getItem(SPERRE_SPEICHER); } catch (e) { altSperre = null; }
     const e = speichereSperreLokal(r.sperre);
     if (e) return e;
+  }
+  const s = speichere(r.daten);
+  if (s) {
+    if (r.sperre) {
+      try {
+        if (altSperre === null) localStorage.removeItem(SPERRE_SPEICHER);
+        else localStorage.setItem(SPERRE_SPEICHER, altSperre);
+      } catch (e) { /* Speicher gesperrt, nichts mehr zu retten */ }
+    }
+    return s;
   }
   location.hash = "";
   location.reload();
