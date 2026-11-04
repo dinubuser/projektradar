@@ -364,15 +364,25 @@ const BEISPIEL = {
     { n: "Rezept-Sammlung", c: "Persönlich", s: "pause", p: 30, d: "Familienrezepte als durchsuchbare Notizen.", w: "~/Notizen/Rezepte", l: "2026-07-12", x: "Entscheiden, ob es weitergeht.", b: "40 Rezepte erfasst, seit Juli still." },
     { n: "Online-Kurs Fotografie", c: "Business", s: "idee", p: 10, d: "Ein kleiner Kurs für Einsteiger.", w: "~/Notizen/Ideen/fotokurs.md", l: "2026-08-02", x: "Fünf Lektionen skizzieren.", b: "Nur eine Ideennotiz mit Gliederung." },
     { n: "Alte Webseite", c: "Business", s: "stop", p: 0, d: "Die frühere WordPress-Seite.", w: "~/Archiv/webseite-alt", l: "2025-12-01", x: "–", b: "Durch die neue Seite ersetzt." }
-  ]
+  ],
+  sperre: {
+    aktiv: true,
+    bis: "2027-01-31",
+    regel: "Bis Ende Januar keine neuen Projekte.",
+    huerden: [
+      { name: "Newsletter läuft drei Wochen am Stück", ziel: 3, stand: 1 },
+      { name: "Haushaltsbuch hat den Foto-Import", ziel: 1, stand: 0 }
+    ],
+    ausnahmen: []
+  }
 };
 
 function ladeDaten() {
   try {
     const o = JSON.parse(document.getElementById("radar").textContent);
-    return { stand: (o && typeof o.stand === "string") ? o.stand : "", aufmerksamkeit: (o && Array.isArray(o.aufmerksamkeit)) ? o.aufmerksamkeit : [], projekte: (o && Array.isArray(o.projekte)) ? o.projekte : [] };
+    return { stand: (o && typeof o.stand === "string") ? o.stand : "", aufmerksamkeit: (o && Array.isArray(o.aufmerksamkeit)) ? o.aufmerksamkeit : [], projekte: (o && Array.isArray(o.projekte)) ? o.projekte : [], sperre: (o && o.sperre && typeof o.sperre === "object") ? o.sperre : null };
   }
-  catch (e) { console.error("Projektradar: JSON-Block #radar ist kaputt", e); return { stand: "", aufmerksamkeit: [], projekte: [], kaputt: true }; }
+  catch (e) { console.error("Projektradar: JSON-Block #radar ist kaputt", e); return { stand: "", aufmerksamkeit: [], projekte: [], sperre: null, kaputt: true }; }
 }
 const ECHT = ladeDaten();
 // Zwei Betriebsarten: «datei» = die Projekte stehen im Block #radar (gefüllt von Claude Code oder Codex),
@@ -393,6 +403,19 @@ const DATEN = GESPEICHERT || (MODUS === "datei" && !ECHT.kaputt ? ECHT : null);
 const DEMO = !ECHT.projekte.length && !ECHT.kaputt && !GESPEICHERT && location.hash === "#beispiel";
 const D = DEMO ? BEISPIEL : (GESPEICHERT || ECHT);
 const P = D.projekte;
+
+// Projektsperre: aus der Datei (Block #radar) oder, im Browser-Betrieb, aus dem localStorage.
+const SPERRE_SPEICHER = "projektradar.sperre.v1";
+function ladeSperreLokal() {
+  try { return pruefeSperre(JSON.parse(localStorage.getItem(SPERRE_SPEICHER) || "null")).sperre || null; }
+  catch (e) { return null; }
+}
+const SPERRE_DATEI = (ECHT.sperre && pruefeSperre(ECHT.sperre).sperre) || null;
+let SPERRE = DEMO ? BEISPIEL.sperre : (SPERRE_DATEI || ladeSperreLokal());
+// Im Datei-Betrieb kann die Seite sich nicht selbst speichern. Änderungen laufen dann über den Skill projektsperre.
+const SPERRE_IM_DATEI = MODUS === "datei" || !!SPERRE_DATEI;
+const mitSperre = d => (d && SPERRE && !DEMO) ? { ...d, sperre: SPERRE } : d;
+const istAusnahme = p => !!SPERRE && (SPERRE.ausnahmen || []).some(a => norm(a) === norm(p.n));
 
 const BANDS = [
   { id: "b100", t: "Läuft im Alltag", r: "100 %", min: 100, max: 100, color: "var(--ok)" },
@@ -764,7 +787,15 @@ function validiere(roh, behalteStand) {
     .filter(a => a && typeof a === "object" && str(a.text)).slice(0, 8)
     .map(a => ({ t: str(a.t), text: str(a.text), crit: a.crit === true }));
   const stand = behalteStand && /^\d{4}-\d{2}-\d{2}$/.test(o.stand || "") ? o.stand : heute();
-  return { daten: { stand, aufmerksamkeit, projekte } };
+  let sperre = null;
+  if (o.sperre !== undefined && o.sperre !== null) {
+    const r = pruefeSperre(o.sperre);
+    if (r.fehler) return { fehler: r.fehler };
+    const texte = [r.sperre.regel, ...r.sperre.huerden.map(h => h.name), ...r.sperre.ausnahmen];
+    if (texte.some(t => GEHEIM.some(re => re.test(t)))) return { fehler: "Projektsperre: ein Text sieht nach Passwort oder Zugangsschlüssel aus. Bitte entfernen oder umschreiben." };
+    sperre = r.sperre;
+  }
+  return { daten: { stand, aufmerksamkeit, projekte }, sperre };
 }
 function speichere(daten) {
   try { localStorage.setItem(SPEICHER, JSON.stringify(daten)); return ""; }
@@ -774,11 +805,20 @@ function speichere(daten) {
       : "Dein Browser lässt das Speichern nicht zu (privates Fenster?). Öffne die Seite in einem normalen Fenster.";
   }
 }
+function speichereSperreLokal(s) {
+  try { localStorage.setItem(SPERRE_SPEICHER, JSON.stringify(s)); return ""; }
+  catch (e) { return "Dein Browser lässt das Speichern nicht zu (privates Fenster?). Öffne die Seite in einem normalen Fenster."; }
+}
 function uebernimm(roh, behalteStand) {
   const r = validiere(roh, behalteStand);
   if (r.fehler) return r.fehler;
   const s = speichere(r.daten);
   if (s) return s;
+  // Fehlt «sperre» im eingefügten Block, bleibt die vorhandene Sperre unberührt.
+  if (r.sperre) {
+    const e = speichereSperreLokal(r.sperre);
+    if (e) return e;
+  }
   location.hash = "";
   location.reload();
   return "";
@@ -799,13 +839,13 @@ document.getElementById("dlgOk").addEventListener("click", dlgOk);
 document.getElementById("dlgText").addEventListener("keydown", e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) dlgOk(); });
 function kopierePrompt(mitDaten) {
   const prompt = document.getElementById("chatgpt-prompt").textContent.trim();
-  const text = mitDaten && DATEN ? prompt + "\n" + JSON.stringify(DATEN) : prompt;
+  const text = mitDaten && DATEN ? prompt + "\n" + JSON.stringify(mitSperre(DATEN)) : prompt;
   kopiere(text, mitDaten ? "Prompt mit deinen Daten kopiert. In einen neuen ChatGPT-Chat einfügen." : "Prompt kopiert. In ChatGPT oben auf Work wechseln, einen neuen Chat öffnen, einfügen und senden.");
 }
 document.getElementById("promptBtn").addEventListener("click", () => kopierePrompt(true));
-document.getElementById("kopieren").addEventListener("click", () => kopiere(JSON.stringify(DATEN), "Daten kopiert."));
+document.getElementById("kopieren").addEventListener("click", () => kopiere(JSON.stringify(mitSperre(DATEN)), "Daten kopiert."));
 document.getElementById("sichern").addEventListener("click", () => {
-  const a = el("a", { href: URL.createObjectURL(new Blob([JSON.stringify(GESPEICHERT, null, 1)], { type: "application/json" })), download: "projektradar-daten-" + heute() + ".json" });
+  const a = el("a", { href: URL.createObjectURL(new Blob([JSON.stringify(mitSperre(GESPEICHERT), null, 1)], { type: "application/json" })), download: "projektradar-daten-" + heute() + ".json" });
   document.body.append(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   toast("Die Datei wird heruntergeladen.");
